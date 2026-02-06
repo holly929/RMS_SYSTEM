@@ -14,7 +14,7 @@ function compileTemplate(template: string, data: Property | Bop | Bill): string 
             if ('billType' in data && 'propertySnapshot' in data) { // It's a Bill
                 amountOwed = data.totalAmountDue;
             } else { // It's a Property or BOP
-                amountOwed = Number(getPropertyValue(data, 'AMOUNT')) || 0;
+                amountOwed = Number(getPropertyValue(data, 'AMOUNT') || getPropertyValue(data, 'Amount')) || 0;
             }
             return amountOwed.toFixed(2);
         }
@@ -43,7 +43,7 @@ function compileTemplate(template: string, data: Property | Bop | Bill): string 
             value = getPropertyValue(data, key);
         }
         
-        if (typeof value === 'number' && ['totalAmountDue', 'Rateable Value', 'Total Payment', 'Permit Fee', 'Payment', 'AMOUNT'].includes(key)) {
+        if (typeof value === 'number' && ['totalAmountDue', 'Rateable Value', 'Total Payment', 'Permit Fee', 'Payment', 'AMOUNT', 'Amount'].includes(key)) {
             return value.toFixed(2);
         }
         
