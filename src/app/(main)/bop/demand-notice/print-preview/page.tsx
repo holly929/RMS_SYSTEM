@@ -80,6 +80,9 @@ export default function BopDemandNoticePrintPage() {
             const storedBops = localStorage.getItem('selectedBopsForDemandNotice');
             if (storedBops) {
                 setAllBops(JSON.parse(storedBops));
+            } else {
+                // If no data in localStorage, fetch all BOP records from store
+                setAllBops(store.bops);
             }
             setSettings({
                 general: store.settings.generalSettings || {},

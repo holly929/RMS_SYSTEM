@@ -81,6 +81,9 @@ export default function PropertyDemandNoticePrintPage() {
             const storedProperties = localStorage.getItem('selectedPropertiesForDemandNotice');
             if (storedProperties) {
                 setAllProperties(JSON.parse(storedProperties));
+            } else {
+                // If no data in localStorage, fetch all properties from store
+                setAllProperties(store.properties);
             }
             setSettings({
                 general: store.settings.generalSettings || {},
