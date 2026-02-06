@@ -157,8 +157,25 @@ function loadStore(): AppStore {
 
     try {
         const stored = window.localStorage.getItem(STORE_KEY);
-        // Clear existing data to ensure we use the new default properties
-        window.localStorage.removeItem(STORE_KEY);
+        if (stored) {
+            const parsedStore = JSON.parse(stored);
+            const defaultStore = getDefaultStore();
+            // Deep merge to ensure all nested default settings are present if missing
+            const mergedSettings = {
+                ...defaultStore.settings,
+                ...parsedStore.settings,
+                smsSettings: { // ensure all sms settings are present
+                    ...defaultStore.settings.smsSettings,
+                    ...(parsedStore.settings?.smsSettings || {})
+                }
+            };
+            parsedStore.settings = mergedSettings;
+            
+            store = { ...defaultStore, ...parsedStore };
+
+            storeInitialized = true;
+            return store;
+        }
     } catch (e) {
         console.error("Failed to load store from localStorage", e);
     }
