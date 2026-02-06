@@ -72,16 +72,8 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
       year: 'numeric' 
     });
 
-    const renderPropertyDemandNotice = () => {
-      const rateableValue = getNumber('Rateable Value');
-      const rateImpost = getNumber('Rate Impost');
-      const sanitationCharged = getNumber('Sanitation Charged');
-      const previousBalance = getNumber('Previous Balance');
-      const totalPayment = getNumber('Total Payment');
-      
-      const amountCharged = (rateableValue != null && rateImpost != null) ? rateableValue * rateImpost : 0;
-      const totalThisYear = amountCharged + (sanitationCharged || 0);
-      const totalAmountDue = totalThisYear + (previousBalance || 0) - (totalPayment || 0);
+     const renderPropertyDemandNotice = () => {
+      const totalAmountDue = getNumber('Amount') || 0;
 
       const propertyAddress = formatValue('Suburb') || formatValue('Town') || '';
       
