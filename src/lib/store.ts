@@ -54,7 +54,63 @@ interface AppStore {
 
 function getDefaultStore(): AppStore {
     return {
-        properties: [],
+        properties: [
+            {
+                id: 'prop-1',
+                'Property Name': 'Green Haven Apartments',
+                'Owner Name': 'John Doe',
+                'Phone Number': '0244123456',
+                'Type of Property': 'Residential',
+                'Suburb': 'Cantonments',
+                'Amount': 1500.00,
+                created_at: new Date().toISOString(),
+                payments: []
+            },
+            {
+                id: 'prop-2',
+                'Property Name': 'Blue Sky Plaza',
+                'Owner Name': 'Jane Smith',
+                'Phone Number': '0555123456',
+                'Type of Property': 'Commercial',
+                'Suburb': 'Airport Residential',
+                'Amount': 3500.00,
+                created_at: new Date().toISOString(),
+                payments: []
+            },
+            {
+                id: 'prop-3',
+                'Property Name': 'Red Leaf Industrial Park',
+                'Owner Name': 'Michael Johnson',
+                'Phone Number': '0209123456',
+                'Type of Property': 'Industrial',
+                'Suburb': 'Tema',
+                'Amount': 5000.00,
+                created_at: new Date().toISOString(),
+                payments: []
+            },
+            {
+                id: 'prop-4',
+                'Property Name': 'Yellow Field Farm',
+                'Owner Name': 'Sarah Williams',
+                'Phone Number': '0544123456',
+                'Type of Property': 'Agricultural',
+                'Suburb': 'Akuse',
+                'Amount': 1000.00,
+                created_at: new Date().toISOString(),
+                payments: []
+            },
+            {
+                id: 'prop-5',
+                'Property Name': 'Purple Grove Mixed Development',
+                'Owner Name': 'David Brown',
+                'Phone Number': '0277123456',
+                'Type of Property': 'Mixed',
+                'Suburb': 'East Legon',
+                'Amount': 4000.00,
+                created_at: new Date().toISOString(),
+                payments: []
+            }
+        ],
         propertyHeaders: ['Property Name', 'Owner Name', 'Phone Number', 'Type of Property', 'Suburb', 'Amount'],
         bops: [],
         bopHeaders: ['Business Name', 'Owner Name', 'Phone Number', 'Town', 'Permit Fee', 'Payment'],
