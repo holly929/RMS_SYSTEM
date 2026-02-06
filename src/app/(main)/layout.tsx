@@ -25,6 +25,7 @@ import {
   CreditCard,
   History,
   ClipboardList,
+  FilePenLine,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
@@ -52,8 +53,10 @@ const navItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard' },
   { href: '/properties', icon: FileText, label: 'Properties' },
   { href: '/billing', icon: ReceiptText, label: 'Billing' },
+  { href: '/properties/demand-notice/print-preview', icon: FilePenLine, label: 'Property Rate Demand Notices' },
   { href: '/bop', icon: Store, label: 'BOP Data' },
   { href: '/bop-billing', icon: ReceiptText, label: 'BOP Billing' },
+  { href: '/bop/demand-notice/print-preview', icon: FilePenLine, label: 'BOP Demand Notices' },
   { href: '/summary-bill', icon: ClipboardList, label: 'Summary Bill' },
   { href: '/bills', icon: BookCopy, label: 'Bills' },
   { href: '/defaulters', icon: AlertCircle, label: 'Defaulters' },
