@@ -8,18 +8,12 @@ export type Payment = {
 
 export type Property = {
   id: string;
-  'No'?: string;
-  'NAME OF AREA COUNCIL'?: string;
-  'NAME OF COMMUNITY'?: string;
-  'BUSINESS NAME & ADD'?: string;
-  'LOCATION'?: string;
-  'NAME OF OWNER'?: string;
-  'SEX OF OWNER'?: string;
-  'BUSINESS CATEGORY'?: string;
-  'DESCRIPTION OF PROPERTY'?: string;
-  'NAME TYPE OF PROPERTY'?: string;
-  'PHONE NUMBER'?: string;
-  'AMOUNT'?: number;
+  'Property Name'?: string;
+  'Owner Name'?: string;
+  'Phone Number'?: string;
+  'Type of Property'?: string;
+  'Suburb'?: string;
+  'Amount'?: number;
   created_at?: string;
   payments?: Payment[];
   [key: string]: any;
