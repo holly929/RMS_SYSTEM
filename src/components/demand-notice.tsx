@@ -49,6 +49,45 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
 
     const formatAmount = useCallback((amount: number | null) => (amount != null ? amount.toFixed(2) : '0.00'), []);
     
+    const numberToWords = useCallback((amount: number): string => {
+        // Simple number to words conversion for Ghana Cedis
+        const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+        const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+        
+        const integerPart = Math.floor(amount);
+        const decimalPart = Math.round((amount - integerPart) * 100);
+        
+        let words = '';
+        
+        if (integerPart === 0) {
+            words = 'Zero';
+        } else if (integerPart < 10) {
+            words = units[integerPart];
+        } else if (integerPart < 20) {
+            words = teens[integerPart - 10];
+        } else if (integerPart < 100) {
+            const ten = Math.floor(integerPart / 10);
+            const unit = integerPart % 10;
+            words = tens[ten] + (unit > 0 ? ' ' + units[unit] : '');
+        } else if (integerPart < 1000) {
+            const hundred = Math.floor(integerPart / 100);
+            const remainder = integerPart % 100;
+            words = units[hundred] + ' Hundred' + (remainder > 0 ? ' and ' + numberToWords(remainder) : '');
+        } else if (integerPart < 1000000) {
+            const thousand = Math.floor(integerPart / 1000);
+            const remainder = integerPart % 1000;
+            words = numberToWords(thousand) + ' Thousand' + (remainder > 0 ? (remainder < 100 ? ' and ' : ' ') + numberToWords(remainder) : '');
+        }
+        
+        words += ' Ghana Cedis';
+        if (decimalPart > 0) {
+            words += ' and ' + decimalPart + ' Pesewas';
+        }
+        
+        return words;
+    }, []);
+    
     const formatValue = useCallback((valueKey: string) => {
         if (!data) return '...';
         const val = data[valueKey];
@@ -115,7 +154,7 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
                 <p>{currentDate}</p>
               </div>
 
-              <h2 className="font-bold text-xl underline mt-8">DEMAND NOTICE</h2>
+              <h2 className="font-bold text-xl underline mt-8 text-center">DEMAND NOTICE</h2>
               <h3 className="font-bold text-lg">PROPERTY RATE - {currentYear}</h3>
 
               <div className="space-y-4 text-justify">
@@ -128,7 +167,7 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
                 </p>
 
                 <p>
-                  3. In line with this legal provision, a Property Rate of GH¢{formatAmount(totalAmountDue)} is levied on your {formatValue('Type of Property') || 'Property'} situated at {propertyAddress} within the {settings.general?.assemblyName || 'Kpandai District'} for the fiscal year {currentYear}.
+                  3. In line with this legal provision, a Property Rate of <strong>{numberToWords(totalAmountDue)}</strong> (GH¢<strong>{formatAmount(totalAmountDue)}</strong>) is levied on your {formatValue('Type of Property') || 'Property'} situated at {propertyAddress} within the {settings.general?.assemblyName || 'Kpandai District'} for the fiscal year {currentYear}.
                 </p>
 
                 <p>
@@ -205,7 +244,7 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
                 <p>{currentDate}</p>
               </div>
 
-              <h2 className="font-bold text-xl underline mt-8">DEMAND NOTICE</h2>
+              <h2 className="font-bold text-xl underline mt-8 text-center">DEMAND NOTICE</h2>
               <h3 className="font-bold text-lg">BUSINESS OPERATING PERMIT – {currentYear}</h3>
 
               <div className="space-y-4 text-justify">
@@ -218,7 +257,7 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
                 </p>
 
                 <p>
-                  3. In line with this legal provision, a Business Operating Permit of GH¢{formatAmount(totalAmountDue)} is levied on your {formatValue('DESCRIPTION OF BUSINESS') || 'Business'} situated at {businessAddress} within the {settings.general?.assemblyName || 'Kpandai District'} for the fiscal year {currentYear}.
+                  3. In line with this legal provision, a Business Operating Permit of <strong>{numberToWords(totalAmountDue)}</strong> (GH¢<strong>{formatAmount(totalAmountDue)}</strong>) is levied on your {formatValue('DESCRIPTION OF BUSINESS') || 'Business'} situated at {businessAddress} within the {settings.general?.assemblyName || 'Kpandai District'} for the fiscal year {currentYear}.
                 </p>
 
                 <p>
