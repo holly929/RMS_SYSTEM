@@ -187,6 +187,7 @@ export const PrintableContent = React.forwardRef<HTMLDivElement, {
             const year = new Date().getFullYear();
             finalBarcode = `${propertyNo}|${ownerName}|${amount}|${year}`;
         } else { // BOP
+            const bop = data as Bop;
             finalAmount = getNumber('AMOUNT') || 0;
 
             const businessName = (formatValue('BUSINESS NAME & ADD') || '').substring(0, 20);
