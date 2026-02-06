@@ -2,20 +2,20 @@
 import type { Property, Bop } from '@/lib/types';
 
 const STANDARD_ALIASES: Record<string, string[]> = {
+    'Property Name': ['Property Name', 'Property Name', 'NAME TYPE OF PROPERTY', 'Business Name', 'BUSINESS NAME & ADD'],
     'Owner Name': ['Owner Name', 'Name of Owner', 'Rate Payer', 'ownername', 'NAME OF OWNER'],
     'Phone Number': ['Phone Number', 'Phone', 'Telephone', 'phonenumber', 'PHONE NUMBER'],
-    'Town': ['Town'],
-    'Suburb': ['Suburb'],
+    'Type of Property': ['Type of Property', 'Property Type', 'propertytype', 'NAME TYPE OF PROPERTY'],
+    'Suburb': ['Suburb', 'LOCATION', 'Location', 'NAME OF COMMUNITY', 'Community'],
+    'Amount': ['Amount', 'AMOUNT', 'Total Amount Due', 'Permit Fee'],
     'Property No': ['Property No', 'Property Number', 'propertyno'],
     'Valuation List No.': ['Valuation List No.', 'Valuation List Number', 'valuationlistno', 'Valuation Number'],
     'Account Number': ['Account Number', 'Acct No', 'accountnumber'],
-    'Property Type': ['Property Type', 'propertytype', 'NAME TYPE OF PROPERTY'],
     'Rateable Value': ['Rateable Value', 'rateablevalue'],
     'Rate Impost': ['Rate Impost', 'rateimpost'],
     'Sanitation Charged': ['Sanitation Charged', 'Sanitation', 'sanitationcharged'],
     'Previous Balance': ['Previous Balance', 'Prev Balance', 'Arrears', 'previousbalance', 'Arrears BF'],
     'Total Payment': ['Total Payment', 'Amount Paid', 'Payment', 'totalpayment'],
-    'AMOUNT': ['AMOUNT', 'Amount', 'Total Amount Due', 'Permit Fee'],
     'NAME OF AREA COUNCIL': ['NAME OF AREA COUNCIL', 'Area Council'],
     'NAME OF COMMUNITY': ['NAME OF COMMUNITY', 'Community'],
     'BUSINESS NAME & ADD': ['BUSINESS NAME & ADD', 'Business Name', 'Business Address'],
@@ -23,7 +23,6 @@ const STANDARD_ALIASES: Record<string, string[]> = {
     'SEX OF OWNER': ['SEX OF OWNER', 'Sex'],
     'BUSINESS CATEGORY': ['BUSINESS CATEGORY', 'Business Category'],
     'DESCRIPTION OF PROPERTY': ['DESCRIPTION OF PROPERTY', 'Property Description'],
-    'NAME TYPE OF PROPERTY': ['NAME TYPE OF PROPERTY', 'Property Type'],
 };
 
 /**
