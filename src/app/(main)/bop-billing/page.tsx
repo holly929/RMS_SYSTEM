@@ -79,10 +79,28 @@ export default function BopBillingPage() {
     router.push('/bop/print-preview');
   };
   
+  const handleViewDemandNotice = (bop: Bop) => {
+    localStorage.setItem('selectedBopsForDemandNotice', JSON.stringify([bop]));
+    router.push('/bop/demand-notice/print-preview');
+  };
+  
   const handlePrintSelected = () => {
     if (selectedRows.length > 0) {
       localStorage.setItem('selectedBopsForPrinting', JSON.stringify(selectedBops));
       router.push('/bop/print-preview');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'No BOP Records Selected',
+        description: 'Please select at least one record to print.',
+      });
+    }
+  };
+  
+  const handlePrintDemandNotices = () => {
+    if (selectedRows.length > 0) {
+      localStorage.setItem('selectedBopsForDemandNotice', JSON.stringify(selectedBops));
+      router.push('/bop/demand-notice/print-preview');
     } else {
       toast({
         variant: 'destructive',
@@ -250,6 +268,10 @@ export default function BopBillingPage() {
                           <View className="mr-2 h-4 w-4" />
                           View Bill
                         </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleViewDemandNotice(row)}>
+                          <FilePenLine className="mr-2 h-4 w-4" />
+                          View Demand Notice
+                        </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => handlePayOnline(row)}>
                           <CreditCard className="mr-2 h-4 w-4" />
                           Pay Online
@@ -309,12 +331,18 @@ export default function BopBillingPage() {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 {getPropertyValue(row, 'BUSINESS NAME & ADD') && getPropertyValue(row, 'AMOUNT') ? (
                   <>
-                  <DropdownMenuItem onSelect={() => handleViewBill(row)}>
-                    <View className="mr-2 h-4 w-4" /> View Bill
-                  </DropdownMenuItem>
-                   <DropdownMenuItem onSelect={() => handlePayOnline(row)}>
-                    <CreditCard className="mr-2 h-4 w-4" /> Pay Online
-                  </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleViewBill(row)}>
+                          <View className="mr-2 h-4 w-4" />
+                          View Bill
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleViewDemandNotice(row)}>
+                          <FilePenLine className="mr-2 h-4 w-4" />
+                          View Demand Notice
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handlePayOnline(row)}>
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Pay Online
+                        </DropdownMenuItem>
                   </>
                 ) : null}
                  {!isViewer && (
@@ -396,11 +424,15 @@ export default function BopBillingPage() {
                   onChange={(e) => setFilter(e.target.value)}
                   className="w-full md:max-w-xs"
                 />
-                {selectedRows.length > 0 && (
+                 {selectedRows.length > 0 && (
                     <div className="flex items-center gap-2 flex-wrap">
                         <Button variant="outline" size="sm" onClick={handlePrintSelected}>
                             <Printer className="h-4 w-4 mr-2"/>
-                            Print ({selectedRows.length})
+                            Print Bills ({selectedRows.length})
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handlePrintDemandNotices}>
+                            <FilePenLine className="h-4 w-4 mr-2"/>
+                            Print Demand Notices ({selectedRows.length})
                         </Button>
                         {!isViewer && 
                         <>

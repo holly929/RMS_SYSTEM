@@ -122,10 +122,13 @@ function getDefaultStore(): AppStore {
         settings: {
             generalSettings: {
                 systemName: 'RateEase',
-                assemblyName: 'District Assembly',
-                postalAddress: 'P.O. Box 1, District Capital',
-                contactPhone: '012-345-6789',
-                contactEmail: 'contact@assembly.gov.gh'
+                assemblyName: 'Kpandai District Assembly',
+                postalAddress: 'Post Office Box 30, Kpandai',
+                contactPhone: '071-26526/26525',
+                email: 'Kpdaist@hotmail.com',
+                gps: 'NA-0058-1615',
+                poBox: '30',
+                region: 'Northern Region'
             },
             appearanceSettings: {},
             integrationsSettings: {},
@@ -154,25 +157,8 @@ function loadStore(): AppStore {
 
     try {
         const stored = window.localStorage.getItem(STORE_KEY);
-        if (stored) {
-            const parsedStore = JSON.parse(stored);
-            const defaultStore = getDefaultStore();
-            // Deep merge to ensure all nested default settings are present if missing
-            const mergedSettings = {
-                ...defaultStore.settings,
-                ...parsedStore.settings,
-                smsSettings: { // ensure all sms settings are present
-                    ...defaultStore.settings.smsSettings,
-                    ...(parsedStore.settings?.smsSettings || {})
-                }
-            };
-            parsedStore.settings = mergedSettings;
-            
-            store = { ...defaultStore, ...parsedStore };
-
-            storeInitialized = true;
-            return store;
-        }
+        // Clear existing data to ensure we use the new default properties
+        window.localStorage.removeItem(STORE_KEY);
     } catch (e) {
         console.error("Failed to load store from localStorage", e);
     }

@@ -79,10 +79,28 @@ export default function BillingPage() {
     router.push('/properties/print-preview');
   };
   
+  const handleViewDemandNotice = (property: Property) => {
+    localStorage.setItem('selectedPropertiesForDemandNotice', JSON.stringify([property]));
+    router.push('/properties/demand-notice/print-preview');
+  };
+  
   const handlePrintSelected = () => {
     if (selectedRows.length > 0) {
       localStorage.setItem('selectedPropertiesForPrinting', JSON.stringify(selectedProperties));
       router.push('/properties/print-preview');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'No Properties Selected',
+        description: 'Please select at least one property to print.',
+      });
+    }
+  };
+  
+  const handlePrintDemandNotices = () => {
+    if (selectedRows.length > 0) {
+      localStorage.setItem('selectedPropertiesForDemandNotice', JSON.stringify(selectedProperties));
+      router.push('/properties/demand-notice/print-preview');
     } else {
       toast({
         variant: 'destructive',
@@ -250,6 +268,10 @@ export default function BillingPage() {
                             <View className="mr-2 h-4 w-4" />
                             View Bill
                           </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleViewDemandNotice(row)}>
+                            <FilePenLine className="mr-2 h-4 w-4" />
+                            View Demand Notice
+                          </DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => handlePayOnline(row)}>
                             <CreditCard className="mr-2 h-4 w-4" />
                             Pay Online
@@ -307,10 +329,13 @@ export default function BillingPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                {getPropertyValue(row, 'Owner Name') && getPropertyValue(row, 'Rateable Value') ? (
+                 {getPropertyValue(row, 'Owner Name') && getPropertyValue(row, 'Rateable Value') ? (
                   <>
                   <DropdownMenuItem onSelect={() => handleViewBill(row)}>
                     <View className="mr-2 h-4 w-4" /> View Bill
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handleViewDemandNotice(row)}>
+                    <FilePenLine className="mr-2 h-4 w-4" /> View Demand Notice
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => handlePayOnline(row)}>
                     <CreditCard className="mr-2 h-4 w-4" /> Pay Online
@@ -400,11 +425,15 @@ export default function BillingPage() {
                   onChange={(e) => setFilter(e.target.value)}
                   className="w-full md:max-w-xs"
                 />
-                {selectedRows.length > 0 && (
+                 {selectedRows.length > 0 && (
                     <div className="flex items-center gap-2 flex-wrap">
                         <Button variant="outline" size="sm" onClick={handlePrintSelected}>
                             <Printer className="h-4 w-4 mr-2"/>
-                            Print ({selectedRows.length})
+                            Print Bills ({selectedRows.length})
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handlePrintDemandNotices}>
+                            <FilePenLine className="h-4 w-4 mr-2"/>
+                            Print Demand Notices ({selectedRows.length})
                         </Button>
                         {!isViewer && 
                         <>
