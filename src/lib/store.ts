@@ -55,7 +55,7 @@ interface AppStore {
 function getDefaultStore(): AppStore {
     return {
         properties: [],
-        propertyHeaders: ['No', 'NAME OF AREA COUNCIL', 'NAME OF COMMUNITY', 'BUSINESS NAME & ADD', 'LOCATION', 'NAME OF OWNER', 'SEX OF OWNER', 'BUSINESS CATEGORY', 'DESCRIPTION OF PROPERTY', 'NAME TYPE OF PROPERTY', 'PHONE NUMBER', 'AMOUNT'],
+        propertyHeaders: ['Property Name', 'Owner Name', 'Phone Number', 'Type of Property', 'Suburb', 'Amount'],
         bops: [],
         bopHeaders: ['Business Name', 'Owner Name', 'Phone Number', 'Town', 'Permit Fee', 'Payment'],
         summaryBillWorkbook: {},

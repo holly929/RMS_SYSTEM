@@ -26,6 +26,7 @@ const propertyFormSchema = z.object({
   'Phone Number': z.string().min(10, 'Phone Number must be at least 10 digits.'),
   'Type of Property': z.enum(['Residential', 'Commercial', 'Industrial', 'Agricultural', 'Mixed']),
   'Suburb': z.string().min(2, 'Suburb is required.'),
+  'Amount': z.coerce.number().min(0, 'Amount must be a positive number.'),
   'created_at': z.date().optional(),
 });
 
@@ -43,6 +44,7 @@ export default function NewPropertyPage() {
             'Phone Number': '',
             'Type of Property': 'Residential',
             'Suburb': '',
+            'Amount': 0,
             'created_at': new Date(),
         },
     });
@@ -147,6 +149,14 @@ export default function NewPropertyPage() {
                              <FormMessage />
                          </FormItem>
                          )} 
+                     />
+                     <FormField control={form.control} name="Amount" render={({ field }) => (
+                         <FormItem>
+                           <FormLabel>Amount (GHS)</FormLabel>
+                           <FormControl><Input type="number" step="10" {...field} /></FormControl>
+                           <FormMessage />
+                         </FormItem>
+                       )}
                      />
                    </div>
                  </CardContent>

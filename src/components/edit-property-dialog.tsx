@@ -40,6 +40,7 @@ const propertyFormSchema = z.object({
   'Phone Number': z.string().min(10, 'Phone Number must be at least 10 digits.'),
   'Type of Property': z.enum(['Residential', 'Commercial', 'Industrial', 'Agricultural', 'Mixed']),
   'Suburb': z.string().min(2, 'Suburb is required.'),
+  'Amount': z.coerce.number().min(0, 'Amount must be a positive number.'),
 });
 
 export function EditPropertyDialog({
@@ -57,6 +58,7 @@ export function EditPropertyDialog({
         'Phone Number': '',
         'Type of Property': 'Residential',
         'Suburb': '',
+        'Amount': 0,
     }
   });
 
@@ -68,6 +70,7 @@ export function EditPropertyDialog({
         'Phone Number': getPropertyValue(property, 'Phone Number'),
         'Type of Property': getPropertyValue(property, 'Type of Property'),
         'Suburb': getPropertyValue(property, 'Suburb'),
+        'Amount': getPropertyValue(property, 'Amount'),
       };
       
       const finalData: Record<string, any> = {};
@@ -160,6 +163,14 @@ export function EditPropertyDialog({
                             <FormMessage />
                         </FormItem>
                         )} 
+                    />
+                    <FormField control={form.control} name="Amount" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Amount (GHS)</FormLabel>
+                          <FormControl><Input type="number" step="10" {...field} value={field.value ?? 0} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
                 </div>
