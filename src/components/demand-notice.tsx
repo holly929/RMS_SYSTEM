@@ -4,6 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import type { Property, Bop } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { getPropertyValue } from '@/lib/property-utils';
 
 type GeneralSettings = {
   assemblyName?: string;
@@ -88,20 +89,23 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
         return words;
     }, []);
     
-    const formatValue = useCallback((valueKey: string) => {
+     const formatValue = useCallback((valueKey: string) => {
         if (!data) return '...';
-        const val = data[valueKey];
-        return val != null && val !== '' ? String(val) : '...';
+        const val = getPropertyValue(data, valueKey);
+        return val != null && String(val).trim() !== '' ? String(val) : '...';
     }, [data]);
 
-    const getNumber = (key: string): number | null => {
+     const getNumber = (key: string): number | null => {
         if (!data) return null;
-        const value = data[key];
+        
+        // Use getPropertyValue to handle aliases correctly
+        const value = getPropertyValue(data, key);
         if (value === null || value === undefined || String(value).trim() === '') return null;
-        const cleanedValue = String(value).replace(/[^0-9.-]/g, '');
-        if (cleanedValue === '') return null;
-        const num = Number(cleanedValue);
-        return isNaN(num) ? null : num;
+        
+        // Extract and parse numeric value from string
+        const numericValue = String(value).replace(/[^0-9.]/g, '');
+        const parsed = parseFloat(numericValue);
+        return isNaN(parsed) ? null : parsed;
     };
 
     const currentYear = new Date().getFullYear();
@@ -201,8 +205,8 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
       );
     };
 
-    const renderBopDemandNotice = () => {
-      const totalAmountDue = getNumber('AMOUNT') || 0;
+     const renderBopDemandNotice = () => {
+      const totalAmountDue = getNumber('AMOUNT') || getNumber('Permit Fee') || 0;
       
       const businessAddress = formatValue('BUSINESS LOCATION') || formatValue('NAME OF COMMUNITY') || '';
       

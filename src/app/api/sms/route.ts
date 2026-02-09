@@ -58,12 +58,12 @@ export async function POST(request: Request) {
     if (response.ok) {
       try {
         const data = JSON.parse(responseText);
-        if (data.code === 'ok' && data.status === 'SUCCESS') {
-          return NextResponse.json({ success: true, balance: data.balance, user: data.user });
-        } else {
-          console.error('Arkesel error response:', data);
-          return NextResponse.json({ error: `Arkesel error: ${data.message || 'Unknown error'}` }, { status: 400 });
-        }
+          if (data.code === 'ok' && data.message === 'Successfully Sent') {
+            return NextResponse.json({ success: true, balance: data.balance, user: data.user });
+          } else {
+            console.error('Arkesel error response:', data);
+            return NextResponse.json({ error: `Arkesel error: ${data.message || 'Unknown error'}` }, { status: 400 });
+          }
       } catch (e) {
          if (responseText.toLowerCase().includes('sent successfully')) {
              return NextResponse.json({ success: true });

@@ -141,7 +141,7 @@ function DefaulterList<T extends Property | Bop>({ data, headers, isMobile, onDe
                 return acc + outstanding;
             } else {
                 const b = item as Bop;
-                const permitFee = Number(getPropertyValue(b, 'Permit Fee')) || 0;
+                const permitFee = Number(getPropertyValue(b, 'AMOUNT')) || 0;
                 const payment = Number(getPropertyValue(b, 'Payment')) || 0;
                 const outstanding = permitFee > payment ? permitFee - payment : 0;
                 return acc + outstanding;

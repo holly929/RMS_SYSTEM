@@ -81,7 +81,7 @@ export default function PaymentPage() {
                 const payment = Number(getPropertyValue(bill.data, 'Total Payment')) || 0;
                 due = (rateableValue * rateImpost) + sanitation + previousBalance - payment;
             } else { // BOP
-                const permitFee = Number(getPropertyValue(bill.data, 'Permit Fee')) || 0;
+                const permitFee = Number(getPropertyValue(bill.data, 'AMOUNT')) || 0;
                 const payment = Number(getPropertyValue(bill.data, 'Payment')) || 0;
                 due = permitFee - payment;
             }
