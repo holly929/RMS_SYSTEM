@@ -27,9 +27,23 @@ export async function POST(request: Request) {
   }
 
   const { ARKESEL_API_KEY, ARKESEL_SENDER_ID } = process.env;
+  
+  // Debug: Log environment variables (masked)
+  console.log('SMS API Environment Variables:');
+  console.log('ARKESEL_API_KEY exists:', !!ARKESEL_API_KEY);
+  console.log('ARKESEL_API_KEY length:', ARKESEL_API_KEY ? ARKESEL_API_KEY.length : 0);
+  console.log('ARKESEL_SENDER_ID exists:', !!ARKESEL_SENDER_ID);
+  console.log('ARKESEL_SENDER_ID value:', ARKESEL_SENDER_ID);
 
   if (!ARKESEL_API_KEY || !ARKESEL_SENDER_ID) {
-    return NextResponse.json({ error: 'SMS service is not configured on the server. Please check .env.local file.' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'SMS service is not configured on the server. Please check .env.local file.',
+      details: {
+        apiKeyExists: !!ARKESEL_API_KEY,
+        senderIdExists: !!ARKESEL_SENDER_ID,
+        nodeEnv: process.env.NODE_ENV
+      }
+    }, { status: 500 });
   }
 
   const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
