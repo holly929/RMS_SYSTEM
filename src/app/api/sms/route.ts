@@ -26,22 +26,36 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Phone number and message are required.' }, { status: 400 });
   }
 
-  const { ARKESEL_API_KEY, ARKESEL_SENDER_ID } = process.env;
+  // Try to get from process.env
+  let { ARKESEL_API_KEY, ARKESEL_SENDER_ID } = process.env;
   
   // Debug: Log environment variables (masked)
-  console.log('SMS API Environment Variables:');
+  console.log('SMS API Environment Variables (from process.env):');
   console.log('ARKESEL_API_KEY exists:', !!ARKESEL_API_KEY);
   console.log('ARKESEL_API_KEY length:', ARKESEL_API_KEY ? ARKESEL_API_KEY.length : 0);
   console.log('ARKESEL_SENDER_ID exists:', !!ARKESEL_SENDER_ID);
   console.log('ARKESEL_SENDER_ID value:', ARKESEL_SENDER_ID);
 
+  // Fallback to hardcoded values if environment variables not found (for debugging)
+  if (!ARKESEL_API_KEY) {
+    console.log('Using fallback ARKESEL_API_KEY');
+    ARKESEL_API_KEY = 'RkpIc0xJb2djck9hcmtTY0RHSGI';
+  }
+  
+  if (!ARKESEL_SENDER_ID) {
+    console.log('Using fallback ARKESEL_SENDER_ID');
+    ARKESEL_SENDER_ID = 'KPDARMS';
+  }
+
+  // Final validation
   if (!ARKESEL_API_KEY || !ARKESEL_SENDER_ID) {
     return NextResponse.json({ 
       error: 'SMS service is not configured on the server. Please check .env.local file.',
       details: {
         apiKeyExists: !!ARKESEL_API_KEY,
         senderIdExists: !!ARKESEL_SENDER_ID,
-        nodeEnv: process.env.NODE_ENV
+        nodeEnv: process.env.NODE_ENV,
+        fallbackUsed: process.env.ARKESEL_API_KEY ? false : true
       }
     }, { status: 500 });
   }
