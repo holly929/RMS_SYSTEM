@@ -138,7 +138,7 @@ function getDefaultStore(): AppStore {
                 enableSmsOnBillGenerated: true,
                 billGeneratedMessageTemplate: "Your bill of GHS {{Amount}} for property {{Property Name}} in {{Suburb}} for the year {{Year}} is ready. Please contact {{Assembly Name}} to arrange payment. Thank you.",
                 enableSmsOnNewBop: true,
-                newBopMessageTemplate: "Dear {{Owner Name}}, your business {{Business Name}} in {{Town}} has been registered with {{Assembly Name}}. Amount: GHS {{AMOUNT}}. Thank you.",
+                newBopMessageTemplate: "Dear {{NAME OF OWNER}}, your business {{BUSINESS NAME & ADD}} ({{BUSINESS CATEGORY}} - {{DESCRIPTION OF BUSINESS}}) in {{NAME OF COMMUNITY}} has been registered with {{Assembly Name}}. Amount: GHS {{AMOUNT}}. Thank you.",
             },
             billDisplaySettings: {},
         },
