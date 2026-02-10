@@ -66,21 +66,29 @@ async function sendSingleSms(phoneNumber: string, message: string): Promise<{ su
         return { success: false, error };
     }
 
+    // Validate and format phone number
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
+    if (!isValidGhanaianPhoneNumber(normalizedPhone)) {
+        const error = `Invalid phone number format: ${phoneNumber}`;
+        console.error(error);
+        return { success: false, error };
+    }
+
     try {
         const response = await fetch('/api/sms', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phoneNumber, message }),
+            body: JSON.stringify({ phoneNumber: normalizedPhone, message }),
         });
 
         const result = await response.json();
 
         if (response.ok && result.success === true) {
-            console.log(`SMS dispatched via backend for ${phoneNumber}`);
+            console.log(`SMS dispatched via backend for ${normalizedPhone}`);
             return { success: true };
         } else {
             const errorMessage = result.error || `An unknown error occurred (status: ${response.status}).`;
-            console.error(`Backend SMS API error for ${phoneNumber}:`, errorMessage, result.details);
+            console.error(`Backend SMS API error for ${normalizedPhone}:`, errorMessage, result.details);
             return { success: false, error: errorMessage };
         }
     } catch (error) {
@@ -88,6 +96,50 @@ async function sendSingleSms(phoneNumber: string, message: string): Promise<{ su
         console.error(`Failed to call internal SMS API for ${phoneNumber}:`, error);
         return { success: false, error: errorMessage };
     }
+}
+
+/**
+ * Validates Ghanaian phone number format.
+ * @param phone Number to validate
+ * @returns boolean indicating if valid Ghanaian format
+ */
+function isValidGhanaianPhoneNumber(phone: string): boolean {
+    // Remove all non-digit characters
+    const cleaned = String(phone || '').replace(/\D/g, '');
+    
+    // Valid formats: 02xxxxxxxxx (10 digits), 2332xxxxxxxxx (12 digits), or 2xxxxxxxxx (9 digits)
+    return (
+        (cleaned.startsWith('0') && cleaned.length === 10) ||
+        (cleaned.startsWith('233') && cleaned.length === 12) ||
+        (cleaned.length === 9 && (cleaned.startsWith('2') || cleaned.startsWith('5')))
+    );
+}
+
+/**
+ * Normalizes Ghanaian phone number to international format without country code prefix.
+ * @param phone Phone number to normalize
+ * @returns normalized phone number (e.g., 233244123456)
+ */
+function normalizePhoneNumber(phone: string): string {
+    // Remove all non-digit characters
+    const cleaned = String(phone || '').replace(/\D/g, '');
+    
+    if (cleaned.startsWith('0') && cleaned.length === 10) {
+        // Replace leading '0' with '233' for Ghanaian numbers (e.g., 024... -> 23324...)
+        return '233' + cleaned.substring(1);
+    }
+    
+    if (cleaned.startsWith('233') && cleaned.length === 12) {
+        // Already in correct format
+        return cleaned;
+    }
+    
+    if (cleaned.length === 9 && (cleaned.startsWith('2') || cleaned.startsWith('5'))) {
+        // If we have 9 digits starting with 2 or 5, add country code
+        return '233' + cleaned;
+    }
+    
+    return cleaned;
 }
 
 
@@ -116,26 +168,42 @@ export async function sendSms(items: (Property | Bop)[], messageTemplate: string
 }
 
 /**
- * Sends a notification when a new property is created.
- * Triggered from the PropertyDataContext.
- * @param property The newly created property.
+ * Sends a notification when a new property or BOP is created.
+ * Triggered from the PropertyDataContext or BopDataContext.
+ * @param item The newly created property or BOP.
  */
-export async function sendNewPropertySms(property: Property | Bop) {
+export async function sendNewPropertySms(item: Property | Bop) {
     const config = store.settings.smsSettings || {};
-    const { enableSmsOnNewProperty, newPropertyMessageTemplate } = config;
+    
+    // Determine if it's a Property or BOP
+    const isBop = 'Business Name' in item;
+    
+    let enableSms: boolean;
+    let messageTemplate: string;
+    let itemType: string;
+    
+    if (isBop) {
+        enableSms = config.enableSmsOnNewBop || false;
+        messageTemplate = config.newBopMessageTemplate || '';
+        itemType = 'BOP';
+    } else {
+        enableSms = config.enableSmsOnNewProperty || false;
+        messageTemplate = config.newPropertyMessageTemplate || '';
+        itemType = 'Property';
+    }
 
-    if (!enableSmsOnNewProperty || !newPropertyMessageTemplate) {
+    if (!enableSms || !messageTemplate) {
         return;
     }
 
     // Check both field names for compatibility with old and new data
-    const phoneNumber = getPropertyValue(property, 'PHONE NUMBER') || getPropertyValue(property, 'Phone Number');
+    const phoneNumber = getPropertyValue(item, 'PHONE NUMBER') || getPropertyValue(item, 'Phone Number');
     if (!phoneNumber || !String(phoneNumber).trim()) {
-        console.log("Skipping new property SMS: No phone number found for property ID", property.id);
+        console.log(`Skipping new ${itemType} SMS: No phone number found for ${itemType} ID`, item.id);
         return;
     }
 
-    const message = compileTemplate(newPropertyMessageTemplate, property);
+    const message = compileTemplate(messageTemplate, item);
     const result = await sendSingleSms(String(phoneNumber), message);
     
     if(result.success) {
@@ -149,7 +217,7 @@ export async function sendNewPropertySms(property: Property | Bop) {
             title: 'SMS Sending Failed',
             description: result.error || `Could not send SMS to ${phoneNumber}.`,
         });
-        console.error(`Failed to send automated new property SMS to ${phoneNumber}.`);
+        console.error(`Failed to send automated new ${itemType} SMS to ${phoneNumber}.`);
     }
 }
 

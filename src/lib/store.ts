@@ -134,9 +134,11 @@ function getDefaultStore(): AppStore {
             integrationsSettings: {},
             smsSettings: {
                 enableSmsOnNewProperty: true,
-                newPropertyMessageTemplate: "Dear {{NAME OF OWNER}}, your property ({{No}}) has been registered with {{Assembly Name}}. Thank you.",
+                newPropertyMessageTemplate: "Dear {{Owner Name}}, your property {{Property Name}} ({{Type of Property}}) in {{Suburb}} has been registered with {{Assembly Name}}. Amount: GHS {{Amount}}. Thank you.",
                 enableSmsOnBillGenerated: true,
-                billGeneratedMessageTemplate: "Your bill of GHS {{AMOUNT}} for property {{No}} for the year {{Year}} is ready. Please contact {{Assembly Name}} to arrange payment. Thank you.",
+                billGeneratedMessageTemplate: "Your bill of GHS {{Amount}} for property {{Property Name}} in {{Suburb}} for the year {{Year}} is ready. Please contact {{Assembly Name}} to arrange payment. Thank you.",
+                enableSmsOnNewBop: true,
+                newBopMessageTemplate: "Dear {{Owner Name}}, your business {{Business Name}} in {{Town}} has been registered with {{Assembly Name}}. Amount: GHS {{AMOUNT}}. Thank you.",
             },
             billDisplaySettings: {},
         },
