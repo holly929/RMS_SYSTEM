@@ -175,8 +175,8 @@ export async function sendSms(items: (Property | Bop)[], messageTemplate: string
 export async function sendNewPropertySms(item: Property | Bop) {
     const config = store.settings.smsSettings || {};
     
-    // Determine if it's a Property or BOP
-    const isBop = 'Business Name' in item;
+     // Determine if it's a Property or BOP
+     const isBop = 'BUSINESS NAME & ADD' in item;
     
     let enableSms: boolean;
     let messageTemplate: string;
