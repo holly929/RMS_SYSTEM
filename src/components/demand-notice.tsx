@@ -164,7 +164,7 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
               </div>
 
               <h2 className="font-bold text-xl underline mt-8 text-center">DEMAND NOTICE</h2>
-              <h3 className="font-bold text-lg text-right mt-2">PROPERTY RATE - {currentYear}</h3>
+              <h3 className="font-bold text-lg text-center mt-2">PROPERTY RATE - {currentYear}</h3>
 
               <div className="space-y-4 text-justify">
                 <p>
@@ -254,7 +254,7 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
               </div>
 
               <h2 className="font-bold text-xl underline mt-8 text-center">DEMAND NOTICE</h2>
-              <h3 className="font-bold text-lg text-right mt-2">BUSINESS OPERATING PERMIT – {currentYear}</h3>
+              <h3 className="font-bold text-lg text-center mt-2">BUSINESS OPERATING PERMIT – {currentYear}</h3>
 
               <div className="space-y-4 text-justify">
                 <p>
