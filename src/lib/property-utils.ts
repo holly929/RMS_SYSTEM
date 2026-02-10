@@ -4,7 +4,7 @@ import type { Property, Bop } from '@/lib/types';
 const STANDARD_ALIASES: Record<string, string[]> = {
     'Property Name': ['Property Name', 'Property Name', 'NAME TYPE OF PROPERTY', 'Business Name', 'BUSINESS NAME & ADD'],
     'Owner Name': ['Owner Name', 'Name of Owner', 'Rate Payer', 'ownername', 'NAME OF OWNER'],
-    'Phone Number': ['Phone Number', 'Phone', 'Telephone', 'phonenumber', 'PHONE NUMBER'],
+    'Phone Number': ['Phone Number', 'Phone', 'Telephone', 'phonenumber', 'PHONE NUMBER', 'PHONE'],
     'Type of Property': ['Type of Property', 'Property Type', 'propertytype', 'NAME TYPE OF PROPERTY'],
     'Suburb': ['Suburb', 'LOCATION', 'Location', 'NAME OF COMMUNITY', 'Community'],
     'Amount': ['Amount', 'AMOUNT', 'Total Amount Due', 'Permit Fee'],

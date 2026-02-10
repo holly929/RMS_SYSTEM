@@ -61,11 +61,11 @@ export default function BillingPage() {
   const [filter, setFilter] = React.useState('');
   const [activeTab, setActiveTab] = React.useState('all');
   const [editingProperty, setEditingProperty] = React.useState<Property | null>(null);
-
   const [selectedRows, setSelectedRows] = React.useState<string[]>([]);
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isSmsDialogOpen, setIsSmsDialogOpen] = React.useState(false);
+  const [filterStatus, setFilterStatus] = React.useState<string>('all');
 
   React.useEffect(() => {
     if (properties.length >= 0) {
@@ -152,9 +152,9 @@ export default function BillingPage() {
   const filteredData = React.useMemo(() => {
     let intermediateData = propertiesWithStatus;
 
-    if (activeTab !== 'all') {
+    if (filterStatus !== 'all') {
       intermediateData = intermediateData.filter(
-        p => p.status.toLowerCase() === activeTab
+        p => p.status.toLowerCase() === filterStatus
       );
     }
     
@@ -165,7 +165,7 @@ export default function BillingPage() {
         key !== 'id' && String(value).toLowerCase().includes(filter.toLowerCase())
       )
     );
-  }, [propertiesWithStatus, filter, activeTab]);
+  }, [propertiesWithStatus, filter, filterStatus]);
 
   const totalPages = Math.ceil(filteredData.length / ROWS_PER_PAGE);
 
@@ -418,14 +418,25 @@ export default function BillingPage() {
             <TabsTrigger value="pending">Pending</TabsTrigger>
             <TabsTrigger value="overdue">Overdue</TabsTrigger>
           </TabsList>
-           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 w-full">
-                <Input
-                  placeholder="Filter data..."
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="w-full md:max-w-xs"
-                />
-                 {selectedRows.length > 0 && (
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 w-full">
+                 <Input
+                   placeholder="Filter data..."
+                   value={filter}
+                   onChange={(e) => setFilter(e.target.value)}
+                   className="w-full md:max-w-xs"
+                 />
+                 <select
+                   value={filterStatus}
+                   onChange={(e) => setFilterStatus(e.target.value)}
+                   className="w-full md:max-w-xs px-3 py-2 rounded-md border border-input bg-background"
+                 >
+                   <option value="all">All Statuses</option>
+                   <option value="paid">Paid</option>
+                   <option value="pending">Pending</option>
+                   <option value="overdue">Overdue</option>
+                   <option value="unbilled">Unbilled</option>
+                 </select>
+                  {selectedRows.length > 0 && (
                     <div className="flex items-center gap-2 flex-wrap">
                         <Button variant="outline" size="sm" onClick={handlePrintSelected}>
                             <Printer className="h-4 w-4 mr-2"/>

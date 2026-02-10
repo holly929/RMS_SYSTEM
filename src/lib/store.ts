@@ -113,7 +113,7 @@ function getDefaultStore(): AppStore {
         ],
         propertyHeaders: ['Property Name', 'Owner Name', 'Phone Number', 'Type of Property', 'Suburb', 'Amount'],
         bops: [],
-        bopHeaders: ['Business Name', 'Owner Name', 'Phone Number', 'Town', 'AMOUNT', 'Payment'],
+        bopHeaders: ['NAME OF AREA COUNCIL', 'NAME OF COMMUNITY', 'BUSINESS NAME & ADD', 'BUSINESS LOCATION', 'NAME OF OWNER', 'SEX OF OWNER', 'BUSINESS CATEGORY', 'DESCRIPTION OF BUSINESS', 'Phone Number', 'AMOUNT', 'Payment'],
         summaryBillWorkbook: {},
         bills: [],
         users: [defaultAdminUser],

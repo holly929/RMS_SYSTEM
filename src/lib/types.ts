@@ -21,7 +21,7 @@ export type Property = {
 
 export type Bop = {
   id: string;
-  'No'?: number;
+  'Phone Number'?: string;
   'NAME OF AREA COUNCIL'?: string;
   'NAME OF COMMUNITY'?: string;
   'BUSINESS NAME & ADD'?: string;
