@@ -50,7 +50,7 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
 
     const formatAmount = useCallback((amount: number | null) => (amount != null ? amount.toFixed(2) : '0.00'), []);
     
-    const numberToWords = useCallback((amount: number): string => {
+     const numberToWords = useCallback((amount: number): string => {
         // Simple number to words conversion for Ghana Cedis
         const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
         const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
@@ -59,28 +59,33 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
         const integerPart = Math.floor(amount);
         const decimalPart = Math.round((amount - integerPart) * 100);
         
-        let words = '';
+        const convertNumber = (num: number): string => {
+            let words = '';
+            
+            if (num === 0) {
+                words = 'Zero';
+            } else if (num < 10) {
+                words = units[num];
+            } else if (num < 20) {
+                words = teens[num - 10];
+            } else if (num < 100) {
+                const ten = Math.floor(num / 10);
+                const unit = num % 10;
+                words = tens[ten] + (unit > 0 ? ' ' + units[unit] : '');
+            } else if (num < 1000) {
+                const hundred = Math.floor(num / 100);
+                const remainder = num % 100;
+                words = units[hundred] + ' Hundred' + (remainder > 0 ? ' and ' + convertNumber(remainder) : '');
+            } else if (num < 1000000) {
+                const thousand = Math.floor(num / 1000);
+                const remainder = num % 1000;
+                words = convertNumber(thousand) + ' Thousand' + (remainder > 0 ? (remainder < 100 ? ' and ' : ' ') + convertNumber(remainder) : '');
+            }
+            
+            return words;
+        };
         
-        if (integerPart === 0) {
-            words = 'Zero';
-        } else if (integerPart < 10) {
-            words = units[integerPart];
-        } else if (integerPart < 20) {
-            words = teens[integerPart - 10];
-        } else if (integerPart < 100) {
-            const ten = Math.floor(integerPart / 10);
-            const unit = integerPart % 10;
-            words = tens[ten] + (unit > 0 ? ' ' + units[unit] : '');
-        } else if (integerPart < 1000) {
-            const hundred = Math.floor(integerPart / 100);
-            const remainder = integerPart % 100;
-            words = units[hundred] + ' Hundred' + (remainder > 0 ? ' and ' + numberToWords(remainder) : '');
-        } else if (integerPart < 1000000) {
-            const thousand = Math.floor(integerPart / 1000);
-            const remainder = integerPart % 1000;
-            words = numberToWords(thousand) + ' Thousand' + (remainder > 0 ? (remainder < 100 ? ' and ' : ' ') + numberToWords(remainder) : '');
-        }
-        
+        let words = convertNumber(integerPart);
         words += ' Ghana Cedis';
         if (decimalPart > 0) {
             words += ' and ' + decimalPart + ' Pesewas';
