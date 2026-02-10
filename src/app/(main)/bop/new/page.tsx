@@ -26,18 +26,26 @@ const bopFormSchema = z.object({
   'BUSINESS CATEGORY': z.string().min(3, 'Business category is required.'),
   'DESCRIPTION OF BUSINESS': z.string().min(3, 'Description of business is required.'),
   'AMOUNT': z.coerce.number().min(0, 'Amount must be a positive number.'),
+  'Phone Number': z.string().min(10, 'Phone number must be at least 10 digits.'),
 });
 
 
 export default function NewBopPage() {
     useRequirePermission();
     const router = useRouter();
-    const { addBop } = useBopData();
+    const { addBop, bopData } = useBopData();
+
+    // Auto-generate next serial number
+    const getNextSerialNumber = () => {
+        if (bopData.length === 0) return 1;
+        const maxSerial = Math.max(...bopData.map(bop => bop['No'] || 0), 0);
+        return maxSerial + 1;
+    };
 
     const form = useForm<z.infer<typeof bopFormSchema>>({
         resolver: zodResolver(bopFormSchema),
         defaultValues: {
-          'No': 0,
+          'No': getNextSerialNumber(),
           'NAME OF AREA COUNCIL': '',
           'NAME OF COMMUNITY': '',
           'BUSINESS NAME & ADD': '',
@@ -47,6 +55,7 @@ export default function NewBopPage() {
           'BUSINESS CATEGORY': '',
           'DESCRIPTION OF BUSINESS': '',
           'AMOUNT': 0,
+          'Phone Number': '',
         },
     });
 
@@ -178,6 +187,16 @@ export default function NewBopPage() {
                         <FormItem>
                           <FormLabel>Amount</FormLabel>
                           <FormControl><Input type="number" step="10" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="Phone Number" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl><Input type="tel" placeholder="e.g. 0244123456" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
