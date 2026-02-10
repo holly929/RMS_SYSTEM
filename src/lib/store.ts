@@ -57,6 +57,7 @@ function getDefaultStore(): AppStore {
         properties: [
             {
                 id: 'prop-1',
+                'Property No': `PROP/${new Date().getFullYear()}/001`,
                 'Property Name': 'Green Haven Apartments',
                 'Owner Name': 'John Doe',
                 'Phone Number': '0244123456',
@@ -68,6 +69,7 @@ function getDefaultStore(): AppStore {
             },
             {
                 id: 'prop-2',
+                'Property No': `PROP/${new Date().getFullYear()}/002`,
                 'Property Name': 'Blue Sky Plaza',
                 'Owner Name': 'Jane Smith',
                 'Phone Number': '0555123456',
@@ -79,6 +81,7 @@ function getDefaultStore(): AppStore {
             },
             {
                 id: 'prop-3',
+                'Property No': `PROP/${new Date().getFullYear()}/003`,
                 'Property Name': 'Red Leaf Industrial Park',
                 'Owner Name': 'Michael Johnson',
                 'Phone Number': '0209123456',
@@ -90,6 +93,7 @@ function getDefaultStore(): AppStore {
             },
             {
                 id: 'prop-4',
+                'Property No': `PROP/${new Date().getFullYear()}/004`,
                 'Property Name': 'Yellow Field Farm',
                 'Owner Name': 'Sarah Williams',
                 'Phone Number': '0544123456',
@@ -101,6 +105,7 @@ function getDefaultStore(): AppStore {
             },
             {
                 id: 'prop-5',
+                'Property No': `PROP/${new Date().getFullYear()}/005`,
                 'Property Name': 'Purple Grove Mixed Development',
                 'Owner Name': 'David Brown',
                 'Phone Number': '0277123456',
@@ -111,9 +116,9 @@ function getDefaultStore(): AppStore {
                 payments: []
             }
         ],
-        propertyHeaders: ['Property Name', 'Owner Name', 'Phone Number', 'Type of Property', 'Suburb', 'Amount'],
+        propertyHeaders: ['Property No', 'Property Name', 'Owner Name', 'Phone Number', 'Type of Property', 'Suburb', 'Amount'],
         bops: [],
-        bopHeaders: ['NAME OF AREA COUNCIL', 'NAME OF COMMUNITY', 'BUSINESS NAME & ADD', 'BUSINESS LOCATION', 'NAME OF OWNER', 'SEX OF OWNER', 'BUSINESS CATEGORY', 'DESCRIPTION OF BUSINESS', 'Phone Number', 'AMOUNT', 'Payment'],
+        bopHeaders: ['BOP No', 'NAME OF AREA COUNCIL', 'NAME OF COMMUNITY', 'BUSINESS NAME & ADD', 'BUSINESS LOCATION', 'NAME OF OWNER', 'SEX OF OWNER', 'BUSINESS CATEGORY', 'DESCRIPTION OF BUSINESS', 'Phone Number', 'AMOUNT', 'Payment'],
         summaryBillWorkbook: {},
         bills: [],
         users: [defaultAdminUser],

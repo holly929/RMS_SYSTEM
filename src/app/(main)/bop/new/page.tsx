@@ -16,7 +16,7 @@ import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { Select } from '@/components/ui/select';
 
 const bopFormSchema = z.object({
-  'No': z.string().min(1, 'Serial number is required.'),
+  'BOP No': z.string().min(1, 'Serial number is required.'),
   'NAME OF AREA COUNCIL': z.string().min(3, 'Name of area council is required.'),
   'NAME OF COMMUNITY': z.string().min(3, 'Name of community is required.'),
   'BUSINESS NAME & ADD': z.string().min(3, 'Business name is required.'),
@@ -39,7 +39,7 @@ export default function NewBopPage() {
         const year = new Date().getFullYear();
         // Filter BOPs from the current year and extract serial numbers
         const currentYearBops = bopData.filter(bop => {
-            const no = bop['No'];
+            const no = bop['BOP No'];
             return typeof no === 'string' && no.startsWith(`BOP/${year}/`);
         });
 
@@ -47,7 +47,7 @@ export default function NewBopPage() {
 
         // Extract and parse serial numbers
         const serialNumbers = currentYearBops.map(bop => {
-            const match = bop['No'].match(/BOP\/\d+\/(\d+)/);
+            const match = bop['BOP No'].match(/BOP\/\d+\/(\d+)/);
             return match ? parseInt(match[1], 10) : 0;
         });
 
@@ -58,7 +58,7 @@ export default function NewBopPage() {
     const form = useForm<z.infer<typeof bopFormSchema>>({
         resolver: zodResolver(bopFormSchema),
         defaultValues: {
-          'No': getNextSerialNumber(),
+          'BOP No': getNextSerialNumber(),
           'NAME OF AREA COUNCIL': '',
           'NAME OF COMMUNITY': '',
           'BUSINESS NAME & ADD': '',
@@ -109,14 +109,14 @@ export default function NewBopPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="No" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>No.</FormLabel>
-                          <FormControl><Input type="number" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                     <FormField control={form.control} name="BOP No" render={({ field }) => (
+                         <FormItem>
+                           <FormLabel>BOP No.</FormLabel>
+                           <FormControl><Input readOnly {...field} /></FormControl>
+                           <FormMessage />
+                         </FormItem>
+                       )}
+                     />
                     <FormField control={form.control} name="NAME OF AREA COUNCIL" render={({ field }) => (
                         <FormItem>
                           <FormLabel>Name of Area Council</FormLabel>

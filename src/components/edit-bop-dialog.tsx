@@ -35,7 +35,7 @@ interface EditBopDialogProps {
 }
 
 const bopFormSchema = z.object({
-  'No': z.coerce.number().min(1, 'Serial number is required.'),
+  'BOP No': z.string().min(1, 'Serial number is required.'),
   'NAME OF AREA COUNCIL': z.string().min(3, 'Name of area council is required.'),
   'NAME OF COMMUNITY': z.string().min(3, 'Name of community is required.'),
   'BUSINESS NAME & ADD': z.string().min(3, 'Business name is required.'),
@@ -57,7 +57,7 @@ export function EditBopDialog({
   const form = useForm<z.infer<typeof bopFormSchema>>({
     resolver: zodResolver(bopFormSchema),
     defaultValues: {
-        'No': 0,
+        'BOP No': '',
         'NAME OF AREA COUNCIL': '',
         'NAME OF COMMUNITY': '',
         'BUSINESS NAME & ADD': '',
@@ -71,18 +71,18 @@ export function EditBopDialog({
   });
 
   useEffect(() => {
-    if (bop && isOpen) {
+     if (bop && isOpen) {
        const normalizedData = {
-        'No': getPropertyValue(bop, 'No'),
-        'NAME OF AREA COUNCIL': getPropertyValue(bop, 'NAME OF AREA COUNCIL'),
-        'NAME OF COMMUNITY': getPropertyValue(bop, 'NAME OF COMMUNITY'),
-        'BUSINESS NAME & ADD': getPropertyValue(bop, 'BUSINESS NAME & ADD'),
-        'BUSINESS LOCATION': getPropertyValue(bop, 'BUSINESS LOCATION'),
-        'NAME OF OWNER': getPropertyValue(bop, 'NAME OF OWNER'),
-        'SEX OF OWNER': getPropertyValue(bop, 'SEX OF OWNER'),
-        'BUSINESS CATEGORY': getPropertyValue(bop, 'BUSINESS CATEGORY'),
-        'DESCRIPTION OF BUSINESS': getPropertyValue(bop, 'DESCRIPTION OF BUSINESS'),
-        'AMOUNT': getPropertyValue(bop, 'AMOUNT'),
+         'BOP No': getPropertyValue(bop, 'BOP No'),
+         'NAME OF AREA COUNCIL': getPropertyValue(bop, 'NAME OF AREA COUNCIL'),
+         'NAME OF COMMUNITY': getPropertyValue(bop, 'NAME OF COMMUNITY'),
+         'BUSINESS NAME & ADD': getPropertyValue(bop, 'BUSINESS NAME & ADD'),
+         'BUSINESS LOCATION': getPropertyValue(bop, 'BUSINESS LOCATION'),
+         'NAME OF OWNER': getPropertyValue(bop, 'NAME OF OWNER'),
+         'SEX OF OWNER': getPropertyValue(bop, 'SEX OF OWNER'),
+         'BUSINESS CATEGORY': getPropertyValue(bop, 'BUSINESS CATEGORY'),
+         'DESCRIPTION OF BUSINESS': getPropertyValue(bop, 'DESCRIPTION OF BUSINESS'),
+         'AMOUNT': getPropertyValue(bop, 'AMOUNT'),
       };
       
       const finalData: Record<string, any> = {};
@@ -117,14 +117,14 @@ export function EditBopDialog({
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="No" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>No.</FormLabel>
-                          <FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                     <FormField control={form.control} name="BOP No" render={({ field }) => (
+                         <FormItem>
+                           <FormLabel>BOP No.</FormLabel>
+                           <FormControl><Input readOnly {...field} value={field.value ?? ''} /></FormControl>
+                           <FormMessage />
+                         </FormItem>
+                       )}
+                     />
                     <FormField control={form.control} name="NAME OF AREA COUNCIL" render={({ field }) => (
                         <FormItem>
                           <FormLabel>Name of Area Council</FormLabel>

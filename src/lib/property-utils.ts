@@ -9,6 +9,7 @@ const STANDARD_ALIASES: Record<string, string[]> = {
     'Suburb': ['Suburb', 'LOCATION', 'Location', 'NAME OF COMMUNITY', 'Community'],
     'Amount': ['Amount', 'AMOUNT', 'Total Amount Due', 'Permit Fee'],
     'Property No': ['Property No', 'Property Number', 'propertyno'],
+    'BOP No': ['BOP No', 'BOP Number', 'bopno'],
     'Valuation List No.': ['Valuation List No.', 'Valuation List Number', 'valuationlistno', 'Valuation Number'],
     'Account Number': ['Account Number', 'Acct No', 'accountnumber'],
     'Rateable Value': ['Rateable Value', 'rateablevalue'],

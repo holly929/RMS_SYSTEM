@@ -21,7 +21,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const propertyFormSchema = z.object({
-  'No': z.string().min(1, 'Serial number is required.'),
+  'Property No': z.string().min(1, 'Serial number is required.'),
   'Property Name': z.string().min(3, 'Property Name is required.'),
   'Owner Name': z.string().min(3, 'Owner Name is required.'),
   'Phone Number': z.string().min(10, 'Phone Number must be at least 10 digits.'),
@@ -42,7 +42,7 @@ export default function NewPropertyPage() {
         const year = new Date().getFullYear();
         // Filter properties from the current year and extract serial numbers
         const currentYearProperties = properties.filter(prop => {
-            const no = prop['No'];
+            const no = prop['Property No'];
             return typeof no === 'string' && no.startsWith(`PROP/${year}/`);
         });
 
@@ -50,7 +50,7 @@ export default function NewPropertyPage() {
 
         // Extract and parse serial numbers
         const serialNumbers = currentYearProperties.map(prop => {
-            const match = prop['No'].match(/PROP\/\d+\/(\d+)/);
+            const match = prop['Property No'].match(/PROP\/\d+\/(\d+)/);
             return match ? parseInt(match[1], 10) : 0;
         });
 
@@ -61,7 +61,7 @@ export default function NewPropertyPage() {
     const form = useForm<z.infer<typeof propertyFormSchema>>({
         resolver: zodResolver(propertyFormSchema),
         defaultValues: {
-            'No': getNextSerialNumber(),
+            'Property No': getNextSerialNumber(),
             'Property Name': '',
             'Owner Name': '',
             'Phone Number': '',
@@ -114,14 +114,14 @@ export default function NewPropertyPage() {
                 </CardHeader>
                  <CardContent className="space-y-4">
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <FormField control={form.control} name="No" render={({ field }) => (
-                         <FormItem>
-                           <FormLabel>No.</FormLabel>
-                           <FormControl><Input readOnly {...field} /></FormControl>
-                           <FormMessage />
-                         </FormItem>
-                       )}
-                     />
+                      <FormField control={form.control} name="Property No" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Property No.</FormLabel>
+                            <FormControl><Input readOnly {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                      <FormField control={form.control} name="Property Name" render={({ field }) => (
                          <FormItem>
                            <FormLabel>Property Name</FormLabel>
