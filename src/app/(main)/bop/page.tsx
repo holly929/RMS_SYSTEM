@@ -8,6 +8,7 @@ import {
   MoreHorizontal,
   PlusCircle,
   Trash2,
+  View,
   Loader2,
   UploadCloud,
   FilePenLine,
@@ -251,6 +252,11 @@ export default function BopPage() {
     });
   };
 
+  const handleViewBill = (bop: Bop) => {
+    localStorage.setItem('selectedBopsForPrinting', JSON.stringify([bop]));
+    router.push('/bop/print-preview');
+  };
+
   const renderDesktopView = () => (
     <div className="w-full overflow-x-auto">
       <Table>
@@ -288,6 +294,12 @@ export default function BopPage() {
                           <Wallet className="mr-2 h-4 w-4" />
                           View Payments
                         </DropdownMenuItem>
+                        {getPropertyValue(row, 'BUSINESS NAME & ADD') && getPropertyValue(row, 'AMOUNT') ? (
+                          <DropdownMenuItem onSelect={() => handleViewBill(row)}>
+                            <View className="mr-2 h-4 w-4" />
+                            View Bill
+                          </DropdownMenuItem>
+                        ) : null}
                         <DropdownMenuItem onSelect={() => setEditingBop(row)}>
                           <FilePenLine className="mr-2 h-4 w-4" />
                           Edit
@@ -333,6 +345,11 @@ export default function BopPage() {
                   <DropdownMenuItem onSelect={() => setViewingPaymentsBop(row)}>
                       <Wallet className="mr-2 h-4 w-4" /> View Payments
                   </DropdownMenuItem>
+                  {getPropertyValue(row, 'BUSINESS NAME & ADD') && getPropertyValue(row, 'AMOUNT') ? (
+                    <DropdownMenuItem onSelect={() => handleViewBill(row)}>
+                      <View className="mr-2 h-4 w-4" /> View Bill
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuItem onSelect={() => setEditingBop(row)}>
                       <FilePenLine className="mr-2 h-4 w-4" /> Edit
                   </DropdownMenuItem>
