@@ -16,11 +16,10 @@ import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { Select } from '@/components/ui/select';
 
 const bopFormSchema = z.object({
-  'No': z.coerce.number().min(1, 'Serial number is required.'),
+  'No': z.string().min(1, 'Serial number is required.'),
   'NAME OF AREA COUNCIL': z.string().min(3, 'Name of area council is required.'),
   'NAME OF COMMUNITY': z.string().min(3, 'Name of community is required.'),
   'BUSINESS NAME & ADD': z.string().min(3, 'Business name is required.'),
-  'BUSINESS LOCATION': z.string().min(3, 'Business location is required.'),
   'NAME OF OWNER': z.string().min(3, 'Name of owner is required.'),
   'SEX OF OWNER': z.string().min(1, 'Sex of owner is required.'),
   'BUSINESS CATEGORY': z.string().min(3, 'Business category is required.'),
@@ -37,9 +36,23 @@ export default function NewBopPage() {
 
     // Auto-generate next serial number
     const getNextSerialNumber = () => {
-        if (bopData.length === 0) return 1;
-        const maxSerial = Math.max(...bopData.map(bop => bop['No'] || 0), 0);
-        return maxSerial + 1;
+        const year = new Date().getFullYear();
+        // Filter BOPs from the current year and extract serial numbers
+        const currentYearBops = bopData.filter(bop => {
+            const no = bop['No'];
+            return typeof no === 'string' && no.startsWith(`BOP/${year}/`);
+        });
+
+        if (currentYearBops.length === 0) return `BOP/${year}/001`;
+
+        // Extract and parse serial numbers
+        const serialNumbers = currentYearBops.map(bop => {
+            const match = bop['No'].match(/BOP\/\d+\/(\d+)/);
+            return match ? parseInt(match[1], 10) : 0;
+        });
+
+        const maxSerial = Math.max(...serialNumbers, 0);
+        return `BOP/${year}/${String(maxSerial + 1).padStart(3, '0')}`;
     };
 
     const form = useForm<z.infer<typeof bopFormSchema>>({
@@ -49,7 +62,6 @@ export default function NewBopPage() {
           'NAME OF AREA COUNCIL': '',
           'NAME OF COMMUNITY': '',
           'BUSINESS NAME & ADD': '',
-          'BUSINESS LOCATION': '',
           'NAME OF OWNER': '',
           'SEX OF OWNER': '',
           'BUSINESS CATEGORY': '',
@@ -132,15 +144,7 @@ export default function NewBopPage() {
                       )}
                     />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="BUSINESS LOCATION" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Business Location</FormLabel>
-                          <FormControl><Input placeholder="e.g. 0244123456" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="NAME OF OWNER" render={({ field }) => (
                         <FormItem>
                           <FormLabel>Name of Owner</FormLabel>
