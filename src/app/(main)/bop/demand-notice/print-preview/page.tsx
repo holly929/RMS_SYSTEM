@@ -39,7 +39,7 @@ const DemandNoticeSheet = React.forwardRef<HTMLDivElement, { bops: Bop[], settin
                 {bops.length > 0 ? (
                     bops.map((bop) => (
                         <div key={bop.id} className="print-page-break w-[210mm] h-[297mm] mx-auto bg-white flex items-center justify-center">
-                            <div className="w-full h-full scale-[0.95] flex items-center justify-center">
+                            <div className="w-full h-full scale-[0.85] flex items-center justify-center">
                                 <DemandNotice data={bop} billType="bop" settings={settings} />
                             </div>
                         </div>

@@ -40,7 +40,7 @@ const DemandNoticeSheet = React.forwardRef<HTMLDivElement, { properties: Propert
                 {properties.length > 0 ? (
                     properties.map((property) => (
                         <div key={property.id} className="print-page-break w-[210mm] h-[297mm] mx-auto bg-white flex items-center justify-center">
-                            <div className="w-full h-full scale-[0.95] flex items-center justify-center">
+                            <div className="w-full h-full scale-[0.85] flex items-center justify-center">
                                 <DemandNotice data={property} billType="property" settings={settings} />
                             </div>
                         </div>
