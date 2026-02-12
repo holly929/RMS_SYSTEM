@@ -23,6 +23,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { getPropertyValue } from '@/lib/property-utils';
 import { SmsDialog } from '@/components/sms-dialog';
 import { useAuth } from '@/context/AuthContext';
+import { AddPropertyDefaulterDialog } from '@/components/add-property-defaulter-dialog';
+import { AddBopDefaulterDialog } from '@/components/add-bop-defaulter-dialog';
+import { Plus } from 'lucide-react';
 
 const formatCurrency = (value: number) => `GHS ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -353,12 +356,14 @@ function DefaulterList<T extends Property | Bop>({ data, headers, isMobile, onDe
 }
 
 export default function DefaultersPage() {
-  const { properties, headers: propertyHeaders, deleteProperties } = usePropertyData();
-  const { bopData, headers: bopHeaders, deleteBops } = useBopData();
+  const { properties, headers: propertyHeaders, deleteProperties, addProperty } = usePropertyData();
+  const { bopData, headers: bopHeaders, deleteBops, addBop } = useBopData();
   const { user: authUser } = useAuth();
   const isViewer = authUser?.role === 'Viewer';
   const isMobile = useIsMobile();
   const [loading, setLoading] = React.useState(false);
+  const [isPropertyDialogOpen, setIsPropertyDialogOpen] = React.useState(false);
+  const [isBopDialogOpen, setIsBopDialogOpen] = React.useState(false);
 
 
   const propertyDefaulters = React.useMemo<PropertyWithStatus[]>(() => {
@@ -388,11 +393,37 @@ export default function DefaultersPage() {
       </div>
       <Tabs defaultValue="properties" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="properties">
+          <TabsTrigger value="properties" className="relative">
               <Home className="mr-2 h-4 w-4"/> Property Rates ({propertyDefaulters.length})
+              {!isViewer && (
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPropertyDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
           </TabsTrigger>
-          <TabsTrigger value="bop">
+          <TabsTrigger value="bop" className="relative">
                <Store className="mr-2 h-4 w-4"/> BOP ({bopDefaulters.length})
+               {!isViewer && (
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsBopDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="properties">
@@ -416,6 +447,21 @@ export default function DefaultersPage() {
             />
         </TabsContent>
       </Tabs>
+      
+      {/* Add Defaulter Dialogs */}
+      <AddPropertyDefaulterDialog
+        isOpen={isPropertyDialogOpen}
+        onOpenChange={setIsPropertyDialogOpen}
+        onPropertyAdd={addProperty}
+        existingProperties={properties}
+      />
+      
+      <AddBopDefaulterDialog
+        isOpen={isBopDialogOpen}
+        onOpenChange={setIsBopDialogOpen}
+        onBopAdd={addBop}
+        existingBops={bopData}
+      />
     </>
   );
 }
