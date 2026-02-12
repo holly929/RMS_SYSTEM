@@ -2,6 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { Bop, Property } from '@/lib/types';
 import type { Bop as SummaryBillData } from '@/lib/types'; // Re-using Bop as it is a flexible key-value store
 import { store, saveStore } from '@/lib/store';
 import { useActivityLogDispatch } from './ActivityLogContext';
@@ -10,6 +11,8 @@ interface SummaryBillContextType {
     workbook: { [sheetName: string]: { data: SummaryBillData[], headers: string[] } };
     setWorkbook: (workbook: { [sheetName: string]: { data: SummaryBillData[], headers: string[] } }) => void;
     deleteAllSummaryBills: () => void;
+    fetchDataFromProperties: () => void;
+    fetchDataFromBop: () => void;
 }
 
 const SummaryBillContext = createContext<SummaryBillContextType | undefined>(undefined);
@@ -32,8 +35,64 @@ export function SummaryBillProvider({ children }: { children: React.ReactNode })
         }
     };
 
+    const fetchDataFromProperties = () => {
+        const propertiesData: Property[] = store.properties;
+        const propertiesHeaders: string[] = store.propertyHeaders;
+        
+        // Convert properties to summary bill format
+        const convertedData = propertiesData.map((property, index) => {
+            const rowData: any = { id: `property-${property.id}` };
+            propertiesHeaders.forEach(header => {
+                rowData[header] = property[header];
+            });
+            return rowData as SummaryBillData;
+        });
+
+        const newWorkbook = {
+            ...workbook,
+            'Properties': {
+                data: convertedData,
+                headers: propertiesHeaders
+            }
+        };
+
+        setAndPersistWorkbook(newWorkbook);
+        addLog('Fetched Properties Data', `${convertedData.length} property records added to summary bill`);
+    };
+
+    const fetchDataFromBop = () => {
+        const bopData: Bop[] = store.bops;
+        const bopHeaders: string[] = store.bopHeaders;
+        
+        // Convert BOP data to summary bill format
+        const convertedData = bopData.map((bop, index) => {
+            const rowData: any = { id: `bop-${bop.id}` };
+            bopHeaders.forEach(header => {
+                rowData[header] = bop[header];
+            });
+            return rowData as SummaryBillData;
+        });
+
+        const newWorkbook = {
+            ...workbook,
+            'BOP Data': {
+                data: convertedData,
+                headers: bopHeaders
+            }
+        };
+
+        setAndPersistWorkbook(newWorkbook);
+        addLog('Fetched BOP Data', `${convertedData.length} BOP records added to summary bill`);
+    };
+
     return (
-        <SummaryBillContext.Provider value={{ workbook, setWorkbook: setAndPersistWorkbook, deleteAllSummaryBills }}>
+        <SummaryBillContext.Provider value={{ 
+            workbook, 
+            setWorkbook: setAndPersistWorkbook, 
+            deleteAllSummaryBills,
+            fetchDataFromProperties,
+            fetchDataFromBop
+        }}>
             {children}
         </SummaryBillContext.Provider>
     );

@@ -132,7 +132,7 @@ export default function SummaryBillPage() {
   const { user: authUser } = useAuth();
   const isViewer = authUser?.role === 'Viewer';
 
-  const { workbook, setWorkbook, deleteAllSummaryBills } = useSummaryBillData();
+  const { workbook, setWorkbook, deleteAllSummaryBills, fetchDataFromProperties, fetchDataFromBop } = useSummaryBillData();
   const [loading, setLoading] = React.useState(true);
   
   const [selectedSheet, setSelectedSheet] = React.useState<string>('');
@@ -534,12 +534,22 @@ export default function SummaryBillPage() {
                     </AlertDialogContent>
                 </AlertDialog>
                 )}
-                {!isViewer && 
-                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importStatus.inProgress}>
-                    {importStatus.inProgress ? <Loader2 className="h-4 w-4 mr-2 animate-spin"/> : <FileUp className="h-4 w-4 mr-2" />}
-                    Import
-                  </Button>
-                }
+                 {!isViewer && (
+                   <>
+                     <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importStatus.inProgress}>
+                       {importStatus.inProgress ? <Loader2 className="h-4 w-4 mr-2 animate-spin"/> : <FileUp className="h-4 w-4 mr-2" />}
+                       Import
+                     </Button>
+                     <Button variant="outline" size="sm" onClick={fetchDataFromProperties}>
+                       <BookCopy className="h-4 w-4 mr-2" />
+                       Fetch Properties Data
+                     </Button>
+                     <Button variant="outline" size="sm" onClick={fetchDataFromBop}>
+                       <BookCopy className="h-4 w-4 mr-2" />
+                       Fetch BOP Data
+                     </Button>
+                   </>
+                 )}
                 {sheetNames.length > 0 && (
                     <Button size="sm" onClick={handlePrint}>
                         <Printer className="h-4 w-4 mr-2" />
