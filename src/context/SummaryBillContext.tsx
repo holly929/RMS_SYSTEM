@@ -6,6 +6,9 @@ import type { Bop, Property } from '@/lib/types';
 import type { Bop as SummaryBillData } from '@/lib/types'; // Re-using Bop as it is a flexible key-value store
 import { store, saveStore } from '@/lib/store';
 import { useActivityLogDispatch } from './ActivityLogContext';
+import { usePropertyData } from './PropertyDataContext';
+import { useBopData } from './BopDataContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface SummaryBillContextType {
     workbook: { [sheetName: string]: { data: SummaryBillData[], headers: string[] } };
@@ -19,7 +22,12 @@ const SummaryBillContext = createContext<SummaryBillContextType | undefined>(und
 
 export function SummaryBillProvider({ children }: { children: React.ReactNode }) {
     const addLog = useActivityLogDispatch();
+    const { toast } = useToast();
     const [workbook, setWorkbookState] = useState<{ [sheetName: string]: { data: SummaryBillData[], headers: string[] } }>(store.summaryBillWorkbook || {});
+    
+    // Get data from Property and BOP contexts
+    const { properties, headers: propertyHeaders } = usePropertyData();
+    const { bopData, headers: bopHeaders } = useBopData();
     
     const setAndPersistWorkbook = (newWorkbook: { [sheetName: string]: { data: SummaryBillData[], headers: string[] } }) => {
         store.summaryBillWorkbook = newWorkbook;
@@ -36,13 +44,10 @@ export function SummaryBillProvider({ children }: { children: React.ReactNode })
     };
 
     const fetchDataFromProperties = () => {
-        const propertiesData: Property[] = store.properties;
-        const propertiesHeaders: string[] = store.propertyHeaders;
-        
         // Convert properties to summary bill format
-        const convertedData = propertiesData.map((property, index) => {
+        const convertedData = properties.map((property, index) => {
             const rowData: any = { id: `property-${property.id}` };
-            propertiesHeaders.forEach(header => {
+            propertyHeaders.forEach(header => {
                 rowData[header] = property[header];
             });
             return rowData as SummaryBillData;
@@ -52,18 +57,19 @@ export function SummaryBillProvider({ children }: { children: React.ReactNode })
             ...workbook,
             'Properties': {
                 data: convertedData,
-                headers: propertiesHeaders
+                headers: propertyHeaders
             }
         };
 
         setAndPersistWorkbook(newWorkbook);
         addLog('Fetched Properties Data', `${convertedData.length} property records added to summary bill`);
+        toast({
+            title: 'Properties Data Fetched',
+            description: `${convertedData.length} property records added to summary bill`,
+        });
     };
 
     const fetchDataFromBop = () => {
-        const bopData: Bop[] = store.bops;
-        const bopHeaders: string[] = store.bopHeaders;
-        
         // Convert BOP data to summary bill format
         const convertedData = bopData.map((bop, index) => {
             const rowData: any = { id: `bop-${bop.id}` };
@@ -83,6 +89,10 @@ export function SummaryBillProvider({ children }: { children: React.ReactNode })
 
         setAndPersistWorkbook(newWorkbook);
         addLog('Fetched BOP Data', `${convertedData.length} BOP records added to summary bill`);
+        toast({
+            title: 'BOP Data Fetched',
+            description: `${convertedData.length} BOP records added to summary bill`,
+        });
     };
 
     return (
