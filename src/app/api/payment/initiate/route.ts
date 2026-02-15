@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { withRateLimit } from '@/lib/rateLimit';
 
-export async function POST(request: Request) {
+async function handler(request: Request) {
   const { amount, email, billId } = await request.json();
 
   // In a real app, you would call the Paystack API here to create a transaction
@@ -10,3 +11,5 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ authorization_url: mockAuthUrl });
 }
+
+export const POST = withRateLimit(handler, 'payment');

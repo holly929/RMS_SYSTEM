@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRateLimit } from '@/lib/rateLimit';
 
 function normalizePhoneNumber(phone: string): string {
   // Remove all non-digit characters
@@ -34,7 +35,7 @@ function normalizePhoneNumber(phone: string): string {
 }
 
 
-export async function POST(request: Request) {
+async function handler(request: Request) {
   const { phoneNumber, message } = await request.json();
 
   if (!phoneNumber || !message) {
@@ -123,3 +124,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to connect to SMS service.' }, { status: 500 });
   }
 }
+
+export const POST = withRateLimit(handler, 'sms');

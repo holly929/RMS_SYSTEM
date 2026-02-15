@@ -4,10 +4,11 @@ const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
 const User = require('../models/User');
 const { auth, require2FA } = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -63,7 +64,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -149,7 +150,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/verify-2fa', async (req, res) => {
+router.post('/verify-2fa', authLimiter, async (req, res) => {
   try {
     const { tempToken, code } = req.body;
 
@@ -220,7 +221,7 @@ router.post('/verify-2fa', async (req, res) => {
   }
 });
 
-router.post('/verify-recovery-code', async (req, res) => {
+router.post('/verify-recovery-code', authLimiter, async (req, res) => {
   try {
     const { tempToken, recoveryCode } = req.body;
 
