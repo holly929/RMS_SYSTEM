@@ -147,6 +147,8 @@ function getDefaultStore(): AppStore {
                 billGeneratedMessageTemplate: "Your bill of GHS {{Amount}} for property {{Property Name}} in {{Suburb}} for the year {{Year}} is ready. Please contact {{Assembly Name}} to arrange payment. Thank you.",
                 enableSmsOnNewBop: true,
                 newBopMessageTemplate: "Dear {{NAME OF OWNER}}, your business {{BUSINESS NAME & ADD}} ({{BUSINESS CATEGORY}} - {{DESCRIPTION OF BUSINESS}}) in {{NAME OF COMMUNITY}} has been registered with {{Assembly Name}}. Amount: GHS {{AMOUNT}}. Thank you.",
+                enableSmsOnPaymentReceived: true,
+                paymentReceivedMessageTemplate: "Dear {{Owner Name}}, we have received your payment of GHS {{Amount}} for {{Property Name/Business}}. New balance: GHS {{Balance}}. Thank you for your contribution to {{Assembly Name}}.",
             },
             billDisplaySettings: {},
         },
@@ -217,6 +219,16 @@ export function forceSaveStore(data: any) {
             console.error("Failed to force save store to localStorage", e);
         }
     }
+}
+
+export function clearAllStoreData() {
+    const defaults = getDefaultStore();
+    store.properties = defaults.properties;
+    store.bops = defaults.bops;
+    store.bills = defaults.bills;
+    store.activityLogs = defaults.activityLogs;
+    store.summaryBillWorkbook = defaults.summaryBillWorkbook;
+    saveStore();
 }
 
 // Re-export store to be used by contexts

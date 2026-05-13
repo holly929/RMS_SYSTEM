@@ -34,7 +34,7 @@ type AppearanceSettings = {
   accentColor?: string;
 };
 
-const BillSheet = React.forwardRef<HTMLDivElement, { bops: Bop[], settings: { general: GeneralSettings, appearance: AppearanceSettings }, billsPerPage: number, isCompact: boolean }>(({ bops, settings, billsPerPage, isCompact }, ref) => {
+const BillSheet = React.forwardRef<HTMLDivElement, { bops: Bop[], settings: { general: GeneralSettings, appearance: AppearanceSettings, billDisplay?: Record<string, boolean> }, billsPerPage: number, isCompact: boolean }>(({ bops, settings, billsPerPage, isCompact }, ref) => {
     
     if (billsPerPage === 4) {
         const bopChunks: Bop[][] = [];
@@ -49,7 +49,7 @@ const BillSheet = React.forwardRef<HTMLDivElement, { bops: Bop[], settings: { ge
                         {chunk.map((bop) => (
                             <div key={bop.id} className="w-full h-full box-border overflow-hidden flex items-center justify-center border-dashed border-gray-400 [&:nth-child(1)]:border-r [&:nth-child(1)]:border-b [&:nth-child(2)]:border-b [&:nth-child(3)]:border-r">
                                <div className="w-full h-full scale-[0.95] flex items-center justify-center">
-                                    <PrintableContent data={bop} billType="bop" settings={settings} isCompact={true} />
+                                    <PrintableContent data={bop} billType="bop" settings={settings} isCompact={true} displaySettings={settings.billDisplay} />
                                </div>
                             </div>
                         ))}
@@ -74,7 +74,7 @@ const BillSheet = React.forwardRef<HTMLDivElement, { bops: Bop[], settings: { ge
                             <React.Fragment key={bop.id}>
                                <div className="h-[148.5mm] w-full box-border overflow-hidden flex items-center justify-center">
                                    <div className="w-full h-full scale-[0.95] flex items-center justify-center">
-                                        <PrintableContent data={bop} billType="bop" settings={settings} isCompact={isCompact} />
+                                        <PrintableContent data={bop} billType="bop" settings={settings} isCompact={isCompact} displaySettings={settings.billDisplay} />
                                    </div>
                                </div>
                                {chunk.length === 2 && chunkIndex === 0 && (
@@ -96,7 +96,7 @@ const BillSheet = React.forwardRef<HTMLDivElement, { bops: Bop[], settings: { ge
                     bops.map((bop) => (
                         <div key={bop.id} className="print-page-break w-[210mm] h-[297mm] mx-auto bg-white flex items-center justify-center">
                             <div className="w-full h-full scale-[0.95] flex items-center justify-center">
-                                <PrintableContent data={bop} billType="bop" settings={settings} isCompact={isCompact}/>
+                                <PrintableContent data={bop} billType="bop" settings={settings} isCompact={isCompact} displaySettings={settings.billDisplay} />
                             </div>
                         </div>
                     ))
@@ -123,7 +123,7 @@ export default function BulkBopPrintPage() {
   
   const [allBops, setAllBops] = useState<Bop[]>([]);
   const [renderedBops, setRenderedBops] = useState<Bop[]>([]);
-  const [settings, setSettings] = useState<{general: GeneralSettings, appearance: AppearanceSettings}>({ general: {}, appearance: {} });
+  const [settings, setSettings] = useState<{general: GeneralSettings, appearance: AppearanceSettings, billDisplay: Record<string, boolean>}>({ general: {}, appearance: {}, billDisplay: {} });
   const [isClient, setIsClient] = useState(false);
 
   const [isPreparing, setIsPreparing] = useState(false);
@@ -142,6 +142,7 @@ export default function BulkBopPrintPage() {
             setSettings({
                 general: store.settings.generalSettings || {},
                 appearance: store.settings.appearanceSettings || {},
+                billDisplay: store.settings.billDisplaySettings || {},
             });
         } catch (error) {
             console.error("Could not load data", error);

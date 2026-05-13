@@ -4,8 +4,8 @@ import type { Property, Bill, Bop } from './types';
 import { store } from './store';
 import { getPropertyValue } from './property-utils';
 import { toast } from '@/hooks/use-toast';
-
-function compileTemplate(template: string, data: Property | Bop | Bill): string {
+ 
+function compileTemplate(template: string, data: Record<string, any>): string {
     if (!template) return '';
     const compiled = template.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (match, key) => {
         
@@ -32,16 +32,19 @@ function compileTemplate(template: string, data: Property | Bop | Bill): string 
         }
         
         let value: any;
-        if ('propertySnapshot' in data) { // It's a Bill object
-            const bill = data as Bill;
-            if (Object.prototype.hasOwnProperty.call(bill, key)) {
-                value = (bill as any)[key];
-            } else {
-                value = getPropertyValue(bill.propertySnapshot, key);
-            }
-        } else { // It's a Property or Bop object
-            value = getPropertyValue(data, key);
+        // Prioritize direct properties from the data object
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+            value = data[key];
+        } else if ('propertySnapshot' in data && data.propertySnapshot && Object.prototype.hasOwnProperty.call(data.propertySnapshot, key)) {
+            // If it's a Bill-like object with a propertySnapshot, check there
+            value = data.propertySnapshot[key];
+        } else {
+            // Fallback to getPropertyValue for nested/dynamic keys if not found directly
+            // This is primarily for Property/Bop fields that might be dynamic
+            value = getPropertyValue(data, key); 
         }
+
+
         
         if (typeof value === 'number' && ['totalAmountDue', 'Rateable Value', 'Total Payment', 'Permit Fee', 'Payment', 'AMOUNT', 'Amount'].includes(key)) {
             return value.toFixed(2);
@@ -261,5 +264,59 @@ export async function sendBillGeneratedSms(bills: Bill[]) {
             title: `${failedResults.length} SMS Notifications Failed`,
             description: `First error: ${failedResults[0].error}`,
         });
+    }
+}
+
+/**
+ * Sends a notification when a payment is received for a property or BOP.
+ * Triggered after a successful payment (online or manual).
+ * @param item The updated Property or BOP object.
+ * @param payment The specific payment that was just made.
+ * @param newBalance The balance after this payment.
+ */
+export async function sendPaymentReceivedSms(item: Property | Bop, payment: Payment, newBalance: number) {
+    const config = store.settings.smsSettings || {};
+    const { enableSmsOnPaymentReceived, paymentReceivedMessageTemplate } = config;
+
+    if (!enableSmsOnPaymentReceived || !paymentReceivedMessageTemplate) {
+        console.log(`Skipping payment received SMS: Feature disabled or template missing.`);
+        return;
+    }
+
+    let ownerName = '';
+    let itemName = '';
+    let phoneNumber = '';
+
+    if ('Property Name' in item) { // It's a Property
+        ownerName = getPropertyValue(item, 'Owner Name') || '';
+        itemName = getPropertyValue(item, 'Property Name') || '';
+        phoneNumber = getPropertyValue(item, 'Phone Number') || '';
+    } else { // It's a BOP
+        ownerName = getPropertyValue(item, 'NAME OF OWNER') || '';
+        itemName = getPropertyValue(item, 'BUSINESS NAME & ADD') || '';
+        phoneNumber = getPropertyValue(item, 'Phone Number') || '';
+    }
+
+    if (!phoneNumber || !String(phoneNumber).trim()) {
+        console.log(`Skipping payment received SMS: No phone number found for item ID`, item.id);
+        return;
+    }
+
+    const templateData = {
+        ...item, // Include all item properties
+        'Owner Name': ownerName,
+        'Property Name/Business': itemName, // Generic placeholder
+        'Amount': payment.amount, // Amount of the current payment
+        'Balance': newBalance, // New calculated balance
+    };
+
+    const message = compileTemplate(paymentReceivedMessageTemplate, templateData);
+    const result = await sendSingleSms(String(phoneNumber), message);
+
+    if (result.success) {
+        toast({ title: 'SMS Notification Sent', description: `Payment receipt message sent to ${phoneNumber}.` });
+    } else {
+        toast({ variant: 'destructive', title: 'SMS Sending Failed', description: result.error || `Could not send payment receipt SMS to ${phoneNumber}.` });
+        console.error(`Failed to send automated payment received SMS to ${phoneNumber}.`);
     }
 }

@@ -35,7 +35,7 @@ type AppearanceSettings = {
   accentColor?: string;
 };
 
-const BillSheet = React.forwardRef<HTMLDivElement, { properties: Property[], settings: { general: GeneralSettings, appearance: AppearanceSettings }, billsPerPage: number, isCompact: boolean }>(({ properties, settings, billsPerPage, isCompact }, ref) => {
+const BillSheet = React.forwardRef<HTMLDivElement, { properties: Property[], settings: { general: GeneralSettings, appearance: AppearanceSettings, billDisplay?: Record<string, boolean> }, billsPerPage: number, isCompact: boolean }>(({ properties, settings, billsPerPage, isCompact }, ref) => {
     
     if (billsPerPage === 4) {
         const propertyChunks: Property[][] = [];
@@ -50,7 +50,7 @@ const BillSheet = React.forwardRef<HTMLDivElement, { properties: Property[], set
                         {chunk.map((property) => (
                             <div key={property.id} className="w-full h-full box-border overflow-hidden flex items-center justify-center border-dashed border-gray-400 [&:nth-child(1)]:border-r [&:nth-child(1)]:border-b [&:nth-child(2)]:border-b [&:nth-child(3)]:border-r">
                                <div className="w-full h-full scale-[0.95] flex items-center justify-center">
-                                    <PrintableContent property={property} settings={settings} isCompact={true} />
+                                    <PrintableContent property={property} settings={settings} isCompact={true} displaySettings={settings.billDisplay} />
                                </div>
                             </div>
                         ))}
@@ -75,7 +75,7 @@ const BillSheet = React.forwardRef<HTMLDivElement, { properties: Property[], set
                             <React.Fragment key={property.id}>
                                <div className="h-[148.5mm] w-full box-border overflow-hidden flex items-center justify-center">
                                    <div className="w-full h-full scale-[0.95] flex items-center justify-center">
-                                        <PrintableContent property={property} settings={settings} isCompact={isCompact} />
+                                        <PrintableContent property={property} settings={settings} isCompact={isCompact} displaySettings={settings.billDisplay} />
                                    </div>
                                </div>
                                {chunk.length === 2 && chunkIndex === 0 && (
@@ -97,7 +97,7 @@ const BillSheet = React.forwardRef<HTMLDivElement, { properties: Property[], set
                     properties.map((property) => (
                         <div key={property.id} className="print-page-break w-[210mm] h-[297mm] mx-auto bg-white flex items-center justify-center">
                             <div className="w-full h-full scale-[0.95] flex items-center justify-center">
-                                <PrintableContent property={property} settings={settings} isCompact={isCompact}/>
+                                <PrintableContent property={property} settings={settings} isCompact={isCompact} displaySettings={settings.billDisplay} />
                             </div>
                         </div>
                     ))
@@ -124,7 +124,7 @@ export default function BulkPrintPage() {
   
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [renderedProperties, setRenderedProperties] = useState<Property[]>([]);
-  const [settings, setSettings] = useState<{general: GeneralSettings, appearance: AppearanceSettings}>({ general: {}, appearance: {} });
+  const [settings, setSettings] = useState<{general: GeneralSettings, appearance: AppearanceSettings, billDisplay: Record<string, boolean>}>({ general: {}, appearance: {}, billDisplay: {} });
   const [isClient, setIsClient] = useState(false);
 
   const [isPreparing, setIsPreparing] = useState(false);
@@ -145,6 +145,7 @@ export default function BulkPrintPage() {
             setSettings({
                 general: store.settings.generalSettings || {},
                 appearance: store.settings.appearanceSettings || {},
+                billDisplay: store.settings.billDisplaySettings || {},
             });
         } catch (error) {
             console.error("Could not load data", error);

@@ -9,7 +9,7 @@ import { useAuth } from './AuthContext';
 // Context for the data state
 const ActivityLogStateContext = createContext<ActivityLog[] | undefined>(undefined);
 // Context for the dispatch function
-const ActivityLogDispatchContext = createContext<((action: string, details?: string) => void) | undefined>(undefined);
+const ActivityLogDispatchContext = createContext<{ addLog: (action: string, details?: string) => void; clearLogs: () => void } | undefined>(undefined);
 
 export function ActivityLogProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
@@ -39,9 +39,17 @@ export function ActivityLogProvider({ children }: { children: React.ReactNode })
         });
     }, [user]);
 
+    const clearLogs = useCallback(() => {
+        const message = "The activity audit trail was cleared by the administrator.";
+        setActivityLogsState([]);
+        store.activityLogs = [];
+        saveStore();
+        addLog('Cleared Logs', message);
+    }, []);
+
     return (
         <ActivityLogStateContext.Provider value={activityLogs}>
-            <ActivityLogDispatchContext.Provider value={addLog}>
+            <ActivityLogDispatchContext.Provider value={{ addLog, clearLogs }}>
                 {children}
             </ActivityLogDispatchContext.Provider>
         </ActivityLogStateContext.Provider>
@@ -62,6 +70,14 @@ export function useActivityLogDispatch() {
     const context = useContext(ActivityLogDispatchContext);
     if (context === undefined) {
         throw new Error('useActivityLogDispatch must be used within an ActivityLogProvider');
+    }
+    return context.addLog;
+}
+
+export function useActivityLogActions() {
+    const context = useContext(ActivityLogDispatchContext);
+    if (context === undefined) {
+        throw new Error('useActivityLogActions must be used within an ActivityLogProvider');
     }
     return context;
 }
