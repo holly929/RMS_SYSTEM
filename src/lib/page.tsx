@@ -8,11 +8,13 @@ import { Printer, ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Payment, Property, Bop } from '@/lib/types';
 import { getPropertyValue } from '@/lib/property-utils';
+import { logAuditEvent } from '@/lib/audit-service';
 
 const formatCurrency = (value: number) => `GHS ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function ReceiptPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     const [receiptData, setReceiptData] = useState<{
         payment: Payment;
@@ -69,7 +71,7 @@ export default function ReceiptPage() {
                 logAuditEvent({
                     timestamp: new Date().toISOString(),
                     actionType: 'ERROR_OCCURRED',
-                    entityId: receiptId,
+                    entityId: receiptId || undefined,
                     metadata: { message: error instanceof Error ? error.message : String(error), action: 'fetchReceiptDetails' }
                 });
                 toast({
