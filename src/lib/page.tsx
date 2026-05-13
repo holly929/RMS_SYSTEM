@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Printer, ArrowLeft, Loader2 } from 'lucide-react';
@@ -21,28 +21,67 @@ export default function ReceiptPage() {
     } | null>(null);
 
     useEffect(() => {
-        const storedReceiptDetails = localStorage.getItem('receiptDetails');
-        if (storedReceiptDetails) {
-            try {
-                setReceiptData(JSON.parse(storedReceiptDetails));
-                localStorage.removeItem('receiptDetails'); // Clear after use
-            } catch (error) {
-                console.error("Failed to parse receipt details from localStorage", error);
+        const fetchReceiptDetails = async () => {
+            const receiptId = searchParams.get('receiptId');
+            if (!receiptId) {
+                logAuditEvent({
+                    timestamp: new Date().toISOString(),
+                    actionType: 'ERROR_OCCURRED',
+                    metadata: { message: 'No receipt ID found in URL for ReceiptPage.', path: window.location.pathname }
+                });
                 toast({
                     variant: 'destructive',
                     title: 'Error',
-                    description: 'Could not load receipt details.',
+                    description: 'No receipt ID found. Please go back and try again.',
                 });
+                router.push('/'); // Redirect if no ID
+                return;
             }
-        } else {
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'No receipt details found. Please make a payment first.',
-            });
-            router.push('/'); // Redirect if no data
-        }
-    }, [router, toast]);
+
+            try {
+                // Replace this with your actual API call to fetch receipt details
+                // Example: const response = await fetch(`/api/payments/${receiptId}`);
+                // For now, simulating with localStorage as a fallback/demonstration,
+                // but this should ideally be removed for production.
+                const storedReceiptDetails = localStorage.getItem('receiptDetails');
+                localStorage.removeItem('receiptDetails'); // Clear temporary storage after use
+
+                if (storedReceiptDetails) {
+                    const data = JSON.parse(storedReceiptDetails);
+                    // Basic validation to ensure data matches expected structure
+                    if (data && data.payment && data.billedItem && typeof data.balanceAfterPayment === 'number') {
+                        setReceiptData(data);
+                        logAuditEvent({
+                            timestamp: new Date().toISOString(),
+                            actionType: 'RECEIPT_VIEWED',
+                            entityType: 'Payment',
+                            entityId: data.payment.id,
+                            metadata: { receiptId, source: 'localStorage' } // Include source for auditing
+                        });
+                    } else {
+                        throw new Error('Invalid receipt data structure from storage.');
+                    }
+                } else {
+                    throw new Error('Receipt details not found in storage.');
+                }
+            } catch (error) {
+                console.error("Failed to load receipt details:", error);
+                logAuditEvent({
+                    timestamp: new Date().toISOString(),
+                    actionType: 'ERROR_OCCURRED',
+                    entityId: receiptId,
+                    metadata: { message: error instanceof Error ? error.message : String(error), action: 'fetchReceiptDetails' }
+                });
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: 'Could not load receipt details. It might have expired or been moved. Please try again or contact support.',
+                });
+                router.push('/'); // Redirect on error
+            }
+        };
+        fetchReceiptDetails();
+    }, [router, toast, searchParams]);
 
     const handlePrint = () => {
         window.print();
@@ -50,6 +89,7 @@ export default function ReceiptPage() {
 
     if (!receiptData) {
         return (
+            // Added audit log for loading state if initial data is missing
             <div className="flex flex-col items-center justify-center h-[calc(100vh-10rem)] text-center">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
                 <h2 className="text-2xl font-semibold">Loading Receipt...</h2>
@@ -63,6 +103,16 @@ export default function ReceiptPage() {
     const itemName = isProperty ? getPropertyValue(billedItem, 'Property Name') : getPropertyValue(billedItem, 'BUSINESS NAME & ADD');
     const ownerName = isProperty ? getPropertyValue(billedItem, 'Owner Name') : getPropertyValue(billedItem, 'NAME OF OWNER');
     const itemIdentifier = isProperty ? getPropertyValue(billedItem, 'Property No') : getPropertyValue(billedItem, 'BOP No'); // Assuming BOP also has a 'BOP No'
+
+    const handlePrintAndAudit = () => {
+        logAuditEvent({
+            timestamp: new Date().toISOString(),
+            actionType: 'RECEIPT_PRINTED',
+            entityType: 'Payment',
+            entityId: payment.id,
+        });
+        window.print();
+    };
 
     return (
         <div className="max-w-2xl mx-auto py-8 print:py-0 print:max-w-full">
@@ -107,7 +157,7 @@ export default function ReceiptPage() {
                     </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4 pt-6 print:hidden">
-                    <Button size="lg" onClick={handlePrint} className="w-full">
+                    <Button size="lg" onClick={handlePrintAndAudit} className="w-full">
                         <Printer className="mr-2 h-5 w-5" />
                         Print Receipt
                     </Button>
