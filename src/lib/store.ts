@@ -164,6 +164,9 @@ function getDefaultStore(): AppStore {
                 showStamp: true,
                 fontFamily: 'sans',
                 fontSize: 10,
+                showAssemblyLogo: true,
+                showGhanaLogo: true,
+                showSignature: true,
                 accentColor: '#2980D1', // Default primary color
                 showQrCode: true,
                 footerText: "Thank you for your prompt payment. This receipt is computer generated and does not require a physical signature for validity.",

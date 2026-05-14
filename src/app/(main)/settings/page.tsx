@@ -16,7 +16,8 @@ import {
   RotateCcw, 
   Type,
   Paintbrush,
-  Database
+  Database,
+  Link as LinkIcon
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -68,6 +69,11 @@ const smsFormSchema = z.object({
   paymentReceivedMessageTemplate: z.string().max(320, "Message cannot exceed 320 chars.").optional(),
 });
 
+const integrationsFormSchema = z.object({
+  arkeselApiKey: z.string().optional(),
+  arkeselSenderId: z.string().max(11, "Sender ID cannot exceed 11 characters.").optional(),
+});
+
 const billDisplaySchema = z.object({
   showPropertyNo: z.boolean().default(true),
   showValuationListNo: z.boolean().default(true),
@@ -77,6 +83,9 @@ const billDisplaySchema = z.object({
   showSuburb: z.boolean().default(true),
   showAccountNumber: z.boolean().default(true),
   showPropertyType: z.boolean().default(true),
+  showAssemblyLogo: z.boolean().default(true),
+  showGhanaLogo: z.boolean().default(true),
+  showSignature: z.boolean().default(true),
   billWarningText: z.string().max(200, "Warning text cannot exceed 200 characters.").optional(),
   fontFamily: z.enum(['sans', 'serif', 'mono']).default('sans'),
   fontSize: z.coerce.number().min(8).max(16).default(10),
@@ -132,11 +141,22 @@ export default function SettingsPage() {
     defaultValues: store.settings.smsSettings || {},
   });
 
+  const integrationsForm = useForm<z.infer<typeof integrationsFormSchema>>({
+    resolver: zodResolver(integrationsFormSchema),
+    defaultValues: store.settings.integrationsSettings || {
+      arkeselApiKey: '',
+      arkeselSenderId: '',
+    },
+  });
+
   const billDisplayForm = useForm<z.infer<typeof billDisplaySchema>>({
     resolver: zodResolver(billDisplaySchema),
     defaultValues: store.settings.billDisplaySettings || {
         showPropertyNo: true,
         showValuationListNo: true,
+        showAssemblyLogo: true,
+        showGhanaLogo: true,
+        showSignature: true,
         showOwnerName: true,
         showPhoneNumber: true,
         showTown: true,
@@ -160,6 +180,12 @@ export default function SettingsPage() {
     store.settings.smsSettings = data;
     saveStore();
     toast({ title: 'SMS Settings Saved', description: 'SMS templates and triggers have been updated.' });
+  };
+
+  const onIntegrationsSubmit = (data: z.infer<typeof integrationsFormSchema>) => {
+    store.settings.integrationsSettings = data;
+    saveStore();
+    toast({ title: 'Integration Saved', description: 'Third-party service credentials updated.' });
   };
 
   const onBillDisplaySubmit = (data: z.infer<typeof billDisplaySchema>) => {
@@ -186,6 +212,7 @@ export default function SettingsPage() {
           <TabsTrigger value="general" className="flex items-center gap-2"><Settings className="h-4 w-4" /> General</TabsTrigger>
           <TabsTrigger value="sms" className="flex items-center gap-2"><MessageSquare className="h-4 w-4" /> SMS Templates</TabsTrigger>
           <TabsTrigger value="appearance" className="flex items-center gap-2"><Palette className="h-4 w-4" /> Appearance</TabsTrigger>
+          <TabsTrigger value="integrations" className="flex items-center gap-2"><LinkIcon className="h-4 w-4" /> Integrations</TabsTrigger>
           <TabsTrigger value="display" className="flex items-center gap-2"><LayoutDashboard className="h-4 w-4" /> Bill Display</TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Security</TabsTrigger>
           <TabsTrigger value="maintenance" className="flex items-center gap-2 text-destructive"><Database className="h-4 w-4" /> Data Management</TabsTrigger>
@@ -326,6 +353,41 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
         
+        <TabsContent value="integrations">
+          <Card>
+            <CardHeader>
+              <CardTitle>Third-Party Integrations</CardTitle>
+              <CardDescription>Configure external services like SMS gateways.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...integrationsForm}>
+                <form onSubmit={integrationsForm.handleSubmit(onIntegrationsSubmit)} className="space-y-4">
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Arkesel SMS Gateway</h3>
+                    <FormField control={integrationsForm.control} name="arkeselApiKey" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Arkesel API Key</FormLabel>
+                        <FormControl><Input type="password" placeholder="Enter your API key" {...field} /></FormControl>
+                        <FormDescription>Find this in your Arkesel account settings.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={integrationsForm.control} name="arkeselSenderId" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SMS Sender ID</FormLabel>
+                        <FormControl><Input placeholder="e.g., KPDARMS" {...field} /></FormControl>
+                        <FormDescription>The name displayed as the sender (max 11 chars).</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <Button type="submit" className="mt-4"><Save className="mr-2 h-4 w-4" /> Save Integration</Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="appearance">
           <AppearanceSettingsForm />
         </TabsContent>
@@ -393,7 +455,7 @@ export default function SettingsPage() {
 
                             <h3 className="text-lg font-semibold mt-6">Field Visibility</h3>
                             <CardDescription>Select which fields should be visible on the generated printed bills.</CardDescription>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {Object.keys(billDisplayForm.getValues()).filter(k => k.startsWith('show')).map((key) => (
                                     <FormField key={key} control={billDisplayForm.control} name={key as any} render={({ field }) => (
                                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">

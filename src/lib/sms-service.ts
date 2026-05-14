@@ -10,12 +10,13 @@ function compileTemplate(template: string, data: Record<string, any>): string {
     if (!template) return '';
     const compiled = template.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (match, key) => {
         
-        if (key === 'Amount Owed') {
+        if (key === 'Amount Owed' || key === 'Balance') {
             let amountOwed = 0;
             if ('billType' in data && 'propertySnapshot' in data) { // It's a Bill
                 amountOwed = data.totalAmountDue;
             } else { // It's a Property or BOP
-                amountOwed = Number(getPropertyValue(data as any, 'AMOUNT') || getPropertyValue(data as any, 'Amount')) || 0;
+                // Check if specific Balance key is provided in context (for payments)
+                amountOwed = data[key] !== undefined ? Number(data[key]) : (Number(getPropertyValue(data as any, 'AMOUNT') || getPropertyValue(data as any, 'Amount')) || 0);
             }
             return amountOwed.toFixed(2);
         }
