@@ -14,7 +14,7 @@ function compileTemplate(template: string, data: Record<string, any>): string {
             if ('billType' in data && 'propertySnapshot' in data) { // It's a Bill
                 amountOwed = data.totalAmountDue;
             } else { // It's a Property or BOP
-                amountOwed = Number(getPropertyValue(data, 'AMOUNT') || getPropertyValue(data, 'Amount')) || 0;
+                amountOwed = Number(getPropertyValue(data as any, 'AMOUNT') || getPropertyValue(data as any, 'Amount')) || 0;
             }
             return amountOwed.toFixed(2);
         }
@@ -41,7 +41,7 @@ function compileTemplate(template: string, data: Record<string, any>): string {
         } else {
             // Fallback to getPropertyValue for nested/dynamic keys if not found directly
             // This is primarily for Property/Bop fields that might be dynamic
-            value = getPropertyValue(data, key); 
+            value = getPropertyValue(data as any, key); 
         }
 
 
