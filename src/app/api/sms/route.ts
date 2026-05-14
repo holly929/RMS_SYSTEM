@@ -52,24 +52,15 @@ async function handler(request: Request) {
   console.log('ARKESEL_SENDER_ID exists:', !!ARKESEL_SENDER_ID);
   console.log('ARKESEL_SENDER_ID value:', ARKESEL_SENDER_ID);
 
-  // Priority: 1. Body parameter, 2. Env variable, 3. Hardcoded fallback
-  const finalApiKey = apiKey || ARKESEL_API_KEY || 'RkpIc0xJb2djck9hcmtTY0RHSGI';
-  const finalSenderId = senderId || ARKESEL_SENDER_ID || 'KPDARMS';
-
-  if (!apiKey && !ARKESEL_API_KEY) {
-    console.log('Using fallback ARKESEL_API_KEY');
-  }
+  // Priority: 1. Body parameter (from UI), 2. Env variable
+  const finalApiKey = apiKey || ARKESEL_API_KEY;
+  const finalSenderId = senderId || ARKESEL_SENDER_ID;
 
   // Final validation
   if (!finalApiKey || !finalSenderId) {
     return NextResponse.json({ 
-      error: 'SMS service is not configured on the server. Please check .env.local file.',
-      details: {
-        apiKeyExists: !!finalApiKey,
-        senderIdExists: !!finalSenderId,
-        nodeEnv: process.env.NODE_ENV,
-        fallbackUsed: process.env.ARKESEL_API_KEY ? false : true
-      }
+      error: 'SMS service is not configured. Please enter your API Key and Sender ID in the Integrations page.',
+      details: { apiKeyExists: !!finalApiKey, senderIdExists: !!finalSenderId }
     }, { status: 500 });
   }
 
