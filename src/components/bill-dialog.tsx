@@ -145,9 +145,13 @@ export const PrintableContent = React.forwardRef<HTMLDivElement, {
     }
 
     const shouldDisplay = (field: string) => {
-        const normalizedSearchKey = normalizeDisplayKey(field);
+        if (!displaySettings) return true;
+        const normalizedField = normalizeDisplayKey(field);
+        
+        // Check if any setting key (stripped of 'show') matches the field
         for (const settingKey in displaySettings) {
-             if (normalizeDisplayKey(settingKey) === normalizedSearchKey) {
+             const normalizedSetting = normalizeDisplayKey(settingKey).replace(/^show/, '');
+             if (normalizedSetting === normalizedField) {
                 return displaySettings[settingKey];
              }
         }

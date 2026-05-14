@@ -134,22 +134,20 @@ export default function SettingsPage() {
 
   const billDisplayForm = useForm<z.infer<typeof billDisplaySchema>>({
     resolver: zodResolver(billDisplaySchema),
-    defaultValues: {
-        ...(store.settings.billDisplaySettings || {
-            showPropertyNo: true,
-            showValuationListNo: true,
-            showOwnerName: true,
-            showPhoneNumber: true,
-            showTown: true,
-            showSuburb: true,
-            showAccountNumber: true,
-            showPropertyType: true,
-        }),
-        billWarningText: store.settings.billDisplaySettings?.billWarningText || "PAY AT ONCE OR FACE LEGAL ACTION",
-        fontFamily: store.settings.billDisplaySettings?.fontFamily || 'sans',
-        fontSize: store.settings.billDisplaySettings?.fontSize || 10,
-        accentColor: store.settings.billDisplaySettings?.accentColor || '#2980D1',
-    }
+    defaultValues: store.settings.billDisplaySettings || {
+        showPropertyNo: true,
+        showValuationListNo: true,
+        showOwnerName: true,
+        showPhoneNumber: true,
+        showTown: true,
+        showSuburb: true,
+        showAccountNumber: true,
+        showPropertyType: true,
+        billWarningText: "PAY AT ONCE OR FACE LEGAL ACTION",
+        fontFamily: 'sans',
+        fontSize: 10,
+        accentColor: '#2980D1',
+    },
   });
 
   const onGeneralSubmit = (data: z.infer<typeof generalFormSchema>) => {
