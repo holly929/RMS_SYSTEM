@@ -15,10 +15,6 @@ type AppearanceSettings = {
   assemblyLogo?: string;
   ghanaLogo?: string;
   signature?: string;
-  fontFamily?: 'sans' | 'serif' | 'mono';
-  fontSize?: number;
-  accentColor?: string;
-  billWarningText?: string;
 };
 
 export function AppearanceSettingsForm() {

@@ -97,7 +97,7 @@ async function sendSingleSms(phoneNumber: string, message: string): Promise<{ su
         if (response.ok && result.success === true) {
             console.log(`SMS dispatched via backend for ${normalizedPhone}`);
             logAuditEvent({
-                timestamp: new Date().toISOString(),
+                timestamp: new Date().toISOString(), // Use current time for audit log
                 actionType: 'DATA_FETCHED', // Using as 'Notification Sent' context
                 entityType: 'SMS',
                 metadata: { recipient: normalizedPhone, status: 'success' }

@@ -15,7 +15,7 @@ import Image from 'next/image';
 
 interface BillDialogProps {
   bill: Bill | null;
-  isOpen: boolean;
+  isOpen: boolean; // Keep this as boolean
   onOpenChange: (isOpen: boolean) => void;
 }
 
@@ -25,10 +25,13 @@ type GeneralSettings = {
   contactPhone?: string;
 };
 
-type AppearanceSettings = {
+type BillDisplaySettings = {
   assemblyLogo?: string;
   ghanaLogo?: string;
   signature?: string;
+  fontFamily?: 'sans' | 'serif' | 'mono';
+  fontSize?: number;
+  accentColor?: string;
   billWarningText?: string;
   fontFamily?: 'sans' | 'serif' | 'mono';
   fontSize?: number;
@@ -69,14 +72,14 @@ export const PrintableContent = React.forwardRef<HTMLDivElement, {
     property?: Property;
     data?: Property | Bop;
     billType?: 'property' | 'bop';
-    settings: { general?: GeneralSettings, appearance?: AppearanceSettings }; 
+    settings: { general?: GeneralSettings, appearance?: AppearanceSettings, billDisplay?: BillDisplaySettings }; 
     isCompact?: boolean; 
     displaySettings?: Record<string, boolean>;
 }>(
   ({ property: propertyProp, data: dataProp, billType: billTypeProp, settings, isCompact = false, displaySettings: displaySettingsProp }, ref) => {
     
     const data = dataProp || propertyProp;
-    const billType = billTypeProp || 'property';
+    const billType = billTypeProp || 'property'; // Default to 'property' if not provided
     
     const [displaySettings, setDisplaySettings] = useState<Record<string, boolean>>({});
 
@@ -84,14 +87,14 @@ export const PrintableContent = React.forwardRef<HTMLDivElement, {
         fontFamily, 
         fontSize, 
         accentColor 
-    } = settings.appearance || {};
+    } = settings.billDisplay || {}; // Get from billDisplaySettings
 
     const fontClass = useMemo(() => ({
         sans: 'font-sans',
         serif: 'font-serif',
         mono: 'font-mono'
     }[fontFamily || 'sans']), [fontFamily]);
-
+    
     const finalFontSize = useMemo(() => {
         const baseSize = fontSize || 12;
         return isCompact ? Math.max(8, baseSize - 2) : baseSize;
@@ -103,7 +106,7 @@ export const PrintableContent = React.forwardRef<HTMLDivElement, {
     }), [finalFontSize]);
 
     const accentStyle = useMemo(() => ({
-        backgroundColor: accentColor || '#F1F5F9'
+        backgroundColor: accentColor || '#F1F5FA' // Use default accent color if not set
     }), [accentColor]);
 
 
@@ -372,7 +375,7 @@ export const PrintableContent = React.forwardRef<HTMLDivElement, {
 PrintableContent.displayName = 'PrintableContent';
 
 
-export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) {
+export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) { // Keep isOpen as boolean
   const [settings, setSettings] = useState<{general?: GeneralSettings, appearance?: AppearanceSettings}>({});
   const componentRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -384,6 +387,7 @@ export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) {
       setSettings({
           general: store.settings.generalSettings || {},
           appearance: store.settings.appearanceSettings || {},
+          billDisplay: store.settings.billDisplaySettings || {}, // Include billDisplaySettings
       });
       setIsLoading(false);
     }

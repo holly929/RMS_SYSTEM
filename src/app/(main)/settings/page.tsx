@@ -13,7 +13,9 @@ import {
   ShieldCheck, 
   AlertTriangle,
   Trash2,
-  RotateCcw,
+  RotateCcw, 
+  Type,
+  Paintbrush,
   Database
 } from 'lucide-react';
 
@@ -32,6 +34,7 @@ import { useBopData } from '@/context/BopDataContext';
 import { useBillData } from '@/context/BillDataContext';
 import { useActivityLogActions } from '@/context/ActivityLogContext';
 import { TwoFactorSettings } from '@/components/twoFactorSettings';
+import { AppearanceSettingsForm } from '@/components/appearance-settings-form';
 import { useAuth } from '@/context/AuthContext';
 import { 
   AlertDialog, 
@@ -74,6 +77,10 @@ const billDisplaySchema = z.object({
   showSuburb: z.boolean().default(true),
   showAccountNumber: z.boolean().default(true),
   showPropertyType: z.boolean().default(true),
+  billWarningText: z.string().max(200, "Warning text cannot exceed 200 characters.").optional(),
+  fontFamily: z.enum(['sans', 'serif', 'mono']).default('sans'),
+  fontSize: z.coerce.number().min(8).max(16).default(10),
+  accentColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Must be a valid hex color code (e.g., #RRGGBB or #RGB)").default('#2980D1'),
 });
 
 const PlaceholderGuide = ({ common, property, bop }: { common: string[], property: string[], bop: string[] }) => (
@@ -137,6 +144,10 @@ export default function SettingsPage() {
         showAccountNumber: true,
         showPropertyType: true,
     },
+    billWarningText: store.settings.billDisplaySettings?.billWarningText || "PAY AT ONCE OR FACE LEGAL ACTION",
+    fontFamily: store.settings.billDisplaySettings?.fontFamily || 'sans',
+    fontSize: store.settings.billDisplaySettings?.fontSize || 10,
+    accentColor: store.settings.billDisplaySettings?.accentColor || '#2980D1',
   });
 
   const onGeneralSubmit = (data: z.infer<typeof generalFormSchema>) => {
@@ -174,6 +185,7 @@ export default function SettingsPage() {
         <TabsList className="bg-muted p-1 rounded-lg">
           <TabsTrigger value="general" className="flex items-center gap-2"><Settings className="h-4 w-4" /> General</TabsTrigger>
           <TabsTrigger value="sms" className="flex items-center gap-2"><MessageSquare className="h-4 w-4" /> SMS Templates</TabsTrigger>
+          <TabsTrigger value="appearance" className="flex items-center gap-2"><Palette className="h-4 w-4" /> Appearance</TabsTrigger>
           <TabsTrigger value="display" className="flex items-center gap-2"><Palette className="h-4 w-4" /> Bill Display</TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Security</TabsTrigger>
           <TabsTrigger value="maintenance" className="flex items-center gap-2 text-destructive"><Database className="h-4 w-4" /> Data Management</TabsTrigger>
@@ -313,16 +325,74 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        
+        <TabsContent value="appearance">
+          <AppearanceSettingsForm />
+        </TabsContent>
 
         <TabsContent value="display">
             <Card>
                 <CardHeader>
-                    <CardTitle>Bill Field Visibility</CardTitle>
-                    <CardDescription>Select which fields should be visible on the generated printed bills.</CardDescription>
+                    <CardTitle>Bill Template Customization</CardTitle>
+                    <CardDescription>Customize the content and appearance of your generated bills.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...billDisplayForm}>
                         <form onSubmit={billDisplayForm.handleSubmit(onBillDisplaySubmit)} className="space-y-4">
+                            <h3 className="text-lg font-semibold mt-6">Content Settings</h3>
+                            <FormField control={billDisplayForm.control} name="billWarningText" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Bill Warning/Footer Text</FormLabel>
+                                    <FormControl><Textarea placeholder="e.g., PAY AT ONCE OR FACE LEGAL ACTION" {...field} value={field.value ?? ''} /></FormControl>
+                                    <FormDescription>This text will appear at the bottom of all generated bills.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+
+                            <h3 className="text-lg font-semibold mt-6">Visual Settings</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField control={billDisplayForm.control} name="fontFamily" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="flex items-center gap-2"><Type className="h-4 w-4" /> Font Family</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select font family" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="sans">Sans-serif (Default)</SelectItem>
+                                                <SelectItem value="serif">Serif</SelectItem>
+                                                <SelectItem value="mono">Monospace</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription>Choose the primary font for your bills.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                                <FormField control={billDisplayForm.control} name="fontSize" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="flex items-center gap-2"><Type className="h-4 w-4" /> Base Font Size (px)</FormLabel>
+                                        <FormControl><Input type="number" min={8} max={16} placeholder="e.g., 10" {...field} value={field.value ?? 10} /></FormControl>
+                                        <FormDescription>Adjust the base font size for bill content (8-16px).</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            </div>
+                            <FormField control={billDisplayForm.control} name="accentColor" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="flex items-center gap-2"><Paintbrush className="h-4 w-4" /> Accent Color</FormLabel>
+                                    <div className="flex items-center gap-2">
+                                        <FormControl><Input type="color" className="w-12 h-8 p-0 border-none" {...field} value={field.value ?? '#2980D1'} /></FormControl>
+                                        <FormControl><Input type="text" placeholder="#2980D1" {...field} value={field.value ?? '#2980D1'} /></FormControl>
+                                    </div>
+                                    <FormDescription>Choose a hex color for highlights on your bills (e.g., borders, totals).</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+
+                            <h3 className="text-lg font-semibold mt-6">Field Visibility</h3>
+                            <CardDescription>Select which fields should be visible on the generated printed bills.</CardDescription>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {Object.keys(billDisplayForm.getValues()).map((key) => (
                                     <FormField key={key} control={billDisplayForm.control} name={key as any} render={({ field }) => (

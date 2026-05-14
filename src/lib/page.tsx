@@ -110,6 +110,7 @@ export default function ReceiptPage() {
 
     const appearance = store.settings.appearanceSettings || {};
     const general = store.settings.generalSettings || {};
+    const billDisplay = store.settings.billDisplaySettings || {};
 
     const handlePrintAndAudit = () => {
         logAuditEvent({
@@ -221,7 +222,7 @@ export default function ReceiptPage() {
                     </div>
                     
                     <p className="text-[9px] text-center text-muted-foreground mt-8 italic">
-                        {store.settings.billDisplaySettings?.footerText || `Thank you for your prompt payment. This receipt is computer generated and serves as official proof of payment to the ${general.assemblyName}.`}
+                        {billDisplay.billWarningText || `Thank you for your prompt payment. This receipt is computer generated and serves as official proof of payment to the ${general.assemblyName}.`}
                     </p>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4 pt-6 print:hidden">

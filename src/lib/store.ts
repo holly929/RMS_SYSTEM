@@ -143,8 +143,6 @@ function getDefaultStore(): AppStore {
                 assemblyLogo: '',
                 ghanaLogo: '',
                 signature: '',
-                fontFamily: 'sans',
-                fontSize: 10,
             },
             integrationsSettings: {
                 arkeselApiKey: '',
@@ -164,6 +162,9 @@ function getDefaultStore(): AppStore {
                 showLogo: true,
                 showSignature: true,
                 showStamp: true,
+                fontFamily: 'sans',
+                fontSize: 10,
+                accentColor: '#2980D1', // Default primary color
                 showQrCode: true,
                 footerText: "Thank you for your prompt payment. This receipt is computer generated and does not require a physical signature for validity.",
             },
