@@ -1,6 +1,6 @@
 
 
-import type { Property, Bill, Bop } from './types';
+import type { Property, Bill, Bop, Payment } from './types';
 import { store } from './store';
 import { getPropertyValue } from './property-utils';
 import { toast } from '@/hooks/use-toast';
