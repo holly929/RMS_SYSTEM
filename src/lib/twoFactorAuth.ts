@@ -25,9 +25,16 @@ export function generateTwoFactorSecret(email: string): TwoFactorSetup {
     );
   }
 
+  // Ensure otpauth_url is a string, as it's required for qrCode
+  if (!secret.otpauth_url) {
+    // This should ideally not happen if 'name' is provided, but TypeScript warns about it.
+    // Throwing an error here makes the function robust against unexpected speakeasy behavior.
+    throw new Error('Failed to generate OTPAuth URL for 2FA setup.');
+  }
+
   return {
     secret: secret.base32,
-    qrCode: secret.otpauth_url,
+    qrCode: secret.otpauth_url, // Now guaranteed to be a string
     recoveryCodes
   };
 }
