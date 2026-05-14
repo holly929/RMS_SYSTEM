@@ -13,6 +13,7 @@ import { store, saveStore } from '@/lib/store';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { AppearanceSettingsForm } from '@/components/appearance-settings-form';
 
 const getEditableSheetUrl = (originalUrl: string): string => {
   if (!originalUrl) return '';
@@ -232,10 +233,11 @@ export default function IntegrationsPage() {
       </div>
       
       <Tabs defaultValue="sheets" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="sheets">Property Rates Sheet</TabsTrigger>
           <TabsTrigger value="bop-sheets">BOP Sheet</TabsTrigger>
           <TabsTrigger value="sms">SMS</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
         <TabsContent value="sheets">
           <GoogleSheetIntegration 
@@ -255,6 +257,9 @@ export default function IntegrationsPage() {
         </TabsContent>
          <TabsContent value="sms">
           <SmsIntegrationCard />
+        </TabsContent>
+        <TabsContent value="appearance">
+          <AppearanceSettingsForm />
         </TabsContent>
       </Tabs>
     </>

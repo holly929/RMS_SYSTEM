@@ -7,6 +7,7 @@
 
 import type { Property, Bop, Bill, User, Payment, ActivityLog } from './types';
 import { PERMISSION_PAGES, type RolePermissions, type UserRole } from '@/context/PermissionsContext';
+import { logAuditEvent } from './audit-service';
 
 const STORE_KEY = 'rateease.store';
 
@@ -255,6 +256,86 @@ export function clearAllStoreData() {
     store.bills = defaults.bills;
     store.activityLogs = defaults.activityLogs;
     store.summaryBillWorkbook = defaults.summaryBillWorkbook;
+    saveStore();
+}
+
+/**
+ * Exports the current store data as a JSON file and downloads it to the user's device.
+ * Logs the event for auditing purposes.
+ */
+export function downloadBackup(user?: User) {
+    const data = JSON.stringify(store, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    const timestamp = new Date().toISOString();
+    const filename = `rateease-backup-${timestamp.replace(/[:.]/g, '-')}.json`;
+    
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    // Log the backup action internally
+    const logEntry: ActivityLog = {
+        id: `log-backup-${Date.now()}`,
+        timestamp,
+        userId: user?.id || 'system',
+        userName: user?.name || 'System Admin',
+        userEmail: user?.email || 'admin@rateease.gov',
+        action: 'System Backup',
+        details: `A full system data backup was downloaded: ${filename}`,
+    };
+    store.activityLogs = [logEntry, ...store.activityLogs];
+
+    // Log the audit event
+    logAuditEvent({
+        timestamp,
+        actionType: 'BACKUP_DOWNLOADED',
+        userId: user?.id,
+        metadata: { filename }
+    });
+
+    saveStore();
+}
+
+/**
+ * Clears all payment history from properties and BOPs, effectively resetting the total revenue collected to zero.
+ * @param user The user object of the person performing the reset for auditing purposes.
+ * @param reason An optional reason for performing the revenue reset.
+ */
+export function resetRevenueCollected(user?: User, reason?: string) {
+    store.properties = store.properties.map(p => ({ ...p, payments: [] }));
+    store.bops = store.bops.map(b => ({ ...b, payments: [] }));
+    
+    const timestamp = new Date().toISOString();
+
+    // 1. Internal Audit: Add to the store's activity log for UI visibility
+    const logEntry: ActivityLog = {
+        id: `log-rev-reset-${Date.now()}`,
+        timestamp,
+        userId: user?.id || 'system',
+        userName: user?.name || 'System Admin',
+        userEmail: user?.email || 'admin@rateease.gov',
+        action: 'Revenue Reset',
+        details: `Total revenue collected metrics were reset by clearing all historical payment data. ${reason ? `Reason: ${reason}` : ''}`,
+    };
+    store.activityLogs = [logEntry, ...store.activityLogs];
+
+    // 2. Service-level Audit: Trigger the audit service (async)
+    logAuditEvent({
+        timestamp,
+        actionType: 'REVENUE_RESET',
+        userId: user?.id,
+        metadata: { 
+            message: 'Complete revenue reset performed.',
+            reason: reason || 'No reason provided.'
+        }
+    });
+
     saveStore();
 }
 

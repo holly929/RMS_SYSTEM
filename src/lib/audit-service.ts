@@ -1,6 +1,6 @@
 // c:/Users/ANEH MATHEW/RMS_SYSTEM/src/lib/audit-service.ts
 
-type AuditAction = 'RECEIPT_VIEWED' | 'RECEIPT_PRINTED' | 'PAYMENT_CREATED' | 'DATA_FETCHED' | 'ERROR_OCCURRED';
+type AuditAction = 'RECEIPT_VIEWED' | 'RECEIPT_PRINTED' | 'PAYMENT_CREATED' | 'DATA_FETCHED' | 'ERROR_OCCURRED' | 'REVENUE_RESET' | 'BACKUP_DOWNLOADED';
 
 interface AuditEvent {
   timestamp: string;
