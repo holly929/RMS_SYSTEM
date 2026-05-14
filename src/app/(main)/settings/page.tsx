@@ -186,7 +186,7 @@ export default function SettingsPage() {
           <TabsTrigger value="general" className="flex items-center gap-2"><Settings className="h-4 w-4" /> General</TabsTrigger>
           <TabsTrigger value="sms" className="flex items-center gap-2"><MessageSquare className="h-4 w-4" /> SMS Templates</TabsTrigger>
           <TabsTrigger value="appearance" className="flex items-center gap-2"><Palette className="h-4 w-4" /> Appearance</TabsTrigger>
-          <TabsTrigger value="display" className="flex items-center gap-2"><Palette className="h-4 w-4" /> Bill Display</TabsTrigger>
+          <TabsTrigger value="display" className="flex items-center gap-2"><LayoutDashboard className="h-4 w-4" /> Bill Display</TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Security</TabsTrigger>
           <TabsTrigger value="maintenance" className="flex items-center gap-2 text-destructive"><Database className="h-4 w-4" /> Data Management</TabsTrigger>
         </TabsList>
@@ -394,7 +394,7 @@ export default function SettingsPage() {
                             <h3 className="text-lg font-semibold mt-6">Field Visibility</h3>
                             <CardDescription>Select which fields should be visible on the generated printed bills.</CardDescription>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {Object.keys(billDisplayForm.getValues()).map((key) => (
+                                {Object.keys(billDisplayForm.getValues()).filter(k => k.startsWith('show')).map((key) => (
                                     <FormField key={key} control={billDisplayForm.control} name={key as any} render={({ field }) => (
                                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                                             <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>

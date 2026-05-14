@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { PlusCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getPropertyValue } from '@/lib/property-utils';
 
@@ -32,6 +33,7 @@ interface EditPropertyDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onPropertyUpdate: (property: Property) => void;
+  onAddPayment: (property: Property) => void; // New prop for adding payment
 }
 
 const propertyFormSchema = z.object({
@@ -48,6 +50,7 @@ export function EditPropertyDialog({
   isOpen,
   onOpenChange,
   onPropertyUpdate,
+  onAddPayment,
 }: EditPropertyDialogProps) {
   
   const form = useForm<z.infer<typeof propertyFormSchema>>({
@@ -176,7 +179,10 @@ export function EditPropertyDialog({
                 </div>
                 <DialogFooter className="pt-6">
                   <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                  <Button type="submit">Save Changes</Button>
+                  <Button type="button" variant="secondary" onClick={() => property && onAddPayment(property)}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Payment
+                  </Button>
+                  <Button type="submit">Save Property</Button>
                 </DialogFooter>
             </form>
         </Form>

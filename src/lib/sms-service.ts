@@ -96,8 +96,8 @@ async function sendSingleSms(phoneNumber: string, message: string): Promise<{ su
 
         if (response.ok && result.success === true) {
             console.log(`SMS dispatched via backend for ${normalizedPhone}`);
-            logAuditEvent({
-                timestamp: new Date().toISOString(), // Use current time for audit log
+            await logAuditEvent({
+                timestamp: new Date().toISOString(),
                 actionType: 'DATA_FETCHED', // Using as 'Notification Sent' context
                 entityType: 'SMS',
                 metadata: { recipient: normalizedPhone, status: 'success' }
@@ -301,15 +301,11 @@ export async function sendPaymentReceivedSms(item: Property | Bop, payment: Paym
     let itemName = '';
     let phoneNumber = '';
 
-    if ('Property Name' in item) { // It's a Property
-        ownerName = getPropertyValue(item, 'Owner Name') || '';
-        itemName = getPropertyValue(item, 'Property Name') || '';
-        phoneNumber = getPropertyValue(item, 'Phone Number') || '';
-    } else { // It's a BOP
-        ownerName = getPropertyValue(item, 'NAME OF OWNER') || '';
-        itemName = getPropertyValue(item, 'BUSINESS NAME & ADD') || '';
-        phoneNumber = getPropertyValue(item, 'Phone Number') || '';
-    }
+    const isProperty = 'Property Name' in item;
+    
+    ownerName = isProperty ? (getPropertyValue(item, 'Owner Name') || '') : (getPropertyValue(item, 'NAME OF OWNER') || '');
+    itemName = isProperty ? (getPropertyValue(item, 'Property Name') || '') : (getPropertyValue(item, 'BUSINESS NAME & ADD') || '');
+    phoneNumber = getPropertyValue(item, 'Phone Number') || getPropertyValue(item, 'PHONE NUMBER') || '';
 
     if (!phoneNumber || !String(phoneNumber).trim()) {
         console.log(`Skipping payment received SMS: No phone number found for item ID`, item.id);

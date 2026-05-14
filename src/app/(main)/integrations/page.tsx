@@ -233,7 +233,7 @@ export default function IntegrationsPage() {
       </div>
       
       <Tabs defaultValue="sheets" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex flex-wrap h-auto w-full gap-1 bg-muted p-1 rounded-lg">
           <TabsTrigger value="sheets">Property Rates Sheet</TabsTrigger>
           <TabsTrigger value="bop-sheets">BOP Sheet</TabsTrigger>
           <TabsTrigger value="sms">SMS</TabsTrigger>
