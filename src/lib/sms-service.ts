@@ -4,6 +4,7 @@ import type { Property, Bill, Bop, Payment } from './types';
 import { store } from './store';
 import { getPropertyValue } from './property-utils';
 import { toast } from '@/hooks/use-toast';
+import { logAuditEvent } from './audit-service';
  
 function compileTemplate(template: string, data: Record<string, any>): string {
     if (!template) return '';
@@ -77,17 +78,30 @@ async function sendSingleSms(phoneNumber: string, message: string): Promise<{ su
         return { success: false, error };
     }
 
+    const integrationConfig = store.settings.integrationsSettings || {};
+
     try {
         const response = await fetch('/api/sms', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phoneNumber: normalizedPhone, message }),
+            body: JSON.stringify({ 
+                phoneNumber: normalizedPhone, 
+                message,
+                apiKey: integrationConfig.arkeselApiKey,
+                senderId: integrationConfig.arkeselSenderId
+            }),
         });
 
         const result = await response.json();
 
         if (response.ok && result.success === true) {
             console.log(`SMS dispatched via backend for ${normalizedPhone}`);
+            logAuditEvent({
+                timestamp: new Date().toISOString(),
+                actionType: 'DATA_FETCHED', // Using as 'Notification Sent' context
+                entityType: 'SMS',
+                metadata: { recipient: normalizedPhone, status: 'success' }
+            });
             return { success: true };
         } else {
             const errorMessage = result.error || `An unknown error occurred (status: ${response.status}).`;

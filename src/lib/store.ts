@@ -138,8 +138,17 @@ function getDefaultStore(): AppStore {
                 poBox: '30',
                 region: 'Northern Region'
             },
-            appearanceSettings: {},
-            integrationsSettings: {},
+            appearanceSettings: {
+                assemblyLogo: '',
+                ghanaLogo: '',
+                signature: '',
+                fontFamily: 'sans',
+                fontSize: 10,
+            },
+            integrationsSettings: {
+                arkeselApiKey: '',
+                arkeselSenderId: 'KPDARMS',
+            },
             smsSettings: {
                 enableSmsOnNewProperty: true,
                 newPropertyMessageTemplate: "Dear {{Owner Name}}, your property {{Property Name}} ({{Type of Property}}) in {{Suburb}} has been registered with {{Assembly Name}}. Amount: GHS {{Amount}}. Thank you.",
@@ -150,7 +159,13 @@ function getDefaultStore(): AppStore {
                 enableSmsOnPaymentReceived: true,
                 paymentReceivedMessageTemplate: "Dear {{Owner Name}}, we have received your payment of GHS {{Amount}} for {{Property Name/Business}}. New balance: GHS {{Balance}}. Thank you for your contribution to {{Assembly Name}}.",
             },
-            billDisplaySettings: {},
+            billDisplaySettings: {
+                showLogo: true,
+                showSignature: true,
+                showStamp: true,
+                showQrCode: true,
+                footerText: "Thank you for your prompt payment. This receipt is computer generated and does not require a physical signature for validity.",
+            },
         },
     };
 }
@@ -176,9 +191,21 @@ function loadStore(): AppStore {
             const mergedSettings = {
                 ...defaultStore.settings,
                 ...parsedStore.settings,
+                appearanceSettings: { // ensure all appearance settings are present
+                    ...defaultStore.settings.appearanceSettings,
+                    ...(parsedStore.settings?.appearanceSettings || {})
+                },
                 smsSettings: { // ensure all sms settings are present
                     ...defaultStore.settings.smsSettings,
                     ...(parsedStore.settings?.smsSettings || {})
+                },
+                integrationsSettings: { // ensure integration settings are merged
+                    ...defaultStore.settings.integrationsSettings,
+                    ...(parsedStore.settings?.integrationsSettings || {})
+                },
+                billDisplaySettings: { // ensure all bill display settings are present
+                    ...defaultStore.settings.billDisplaySettings,
+                    ...(parsedStore.settings?.billDisplaySettings || {})
                 }
             };
             parsedStore.settings = mergedSettings;

@@ -9,7 +9,10 @@ import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BookCopy, AlertCircle, Loader2, Info, Server } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { store } from '@/lib/store';
+import { store, saveStore } from '@/lib/store';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 const getEditableSheetUrl = (originalUrl: string): string => {
   if (!originalUrl) return '';
@@ -81,35 +84,139 @@ function GoogleSheetIntegration({ settingKey, title, description, emptyStateText
   );
 }
 
-function SmsFeatureInfo() {
+function SmsIntegrationCard() {
+  const { toast } = useToast();
+  const [apiKey, setApiKey] = useState(store.settings.integrationsSettings?.arkeselApiKey || '');
+  const [senderId, setSenderId] = useState(store.settings.integrationsSettings?.arkeselSenderId || 'KPDARMS');
+  const [testPhoneNumber, setTestPhoneNumber] = useState('');
+  const [isTesting, setIsTesting] = useState(false);
+  const [isSaving, setIsLoading] = useState(false);
+
+  const handleSave = () => {
+    setIsLoading(true);
+    try {
+      if (!store.settings.integrationsSettings) {
+        store.settings.integrationsSettings = {};
+      }
+      store.settings.integrationsSettings.arkeselApiKey = apiKey;
+      store.settings.integrationsSettings.arkeselSenderId = senderId;
+      saveStore();
+      toast({
+        title: "Settings Saved",
+        description: "SMS integration settings have been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save settings.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTestSms = async () => {
+    if (!testPhoneNumber.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Missing Phone Number",
+        description: "Please enter a phone number to send a test SMS to.",
+      });
+      return;
+    }
+
+    if (!apiKey) {
+      toast({
+        variant: "destructive",
+        title: "Missing API Key",
+        description: "Please enter your Arkesel API key first.",
+      });
+      return;
+    }
+
+    setIsTesting(true);
+    try {
+      const response = await fetch('/api/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phoneNumber: testPhoneNumber, 
+          message: `Test message from ${store.settings.generalSettings?.systemName || 'RateEase'}. Your SMS integration is working correctly!`,
+          apiKey: apiKey,
+          senderId: senderId
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast({ title: "Test Successful", description: `A test SMS has been sent to ${testPhoneNumber}.` });
+      } else {
+        toast({ variant: "destructive", title: "Test Failed", description: result.error || "Failed to send test SMS." });
+      }
+    } catch (error) {
+      console.error('Test SMS error:', error);
+      toast({ variant: "destructive", title: "Network Error", description: "Could not connect to the SMS service." });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Automated SMS Notifications</CardTitle>
+        <CardTitle>Arkesel SMS Integration</CardTitle>
         <CardDescription>
-          Keep property owners informed with automatic SMS alerts.
+          Configure your Arkesel API credentials to enable automated SMS notifications.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>How It Works</AlertTitle>
-          <AlertDescription>
-            The system can automatically send SMS notifications when key events happen, such as when a new property is registered or a new bill is generated.
-          </AlertDescription>
-        </Alert>
-        <Alert>
-          <Server className="h-4 w-4" />
-          <AlertTitle>Configuration Required</AlertTitle>
-          <AlertDescription>
-            This feature is powered by Infobip. To enable it, you must configure your Infobip API credentials and message templates on the Settings page.
-          </AlertDescription>
-        </Alert>
+        <div className="space-y-2">
+          <Label htmlFor="apiKey">Arkesel API Key</Label>
+          <Input 
+            id="apiKey" 
+            type="password" 
+            placeholder="Enter your Arkesel API key" 
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="senderId">Sender ID</Label>
+          <Input 
+            id="senderId" 
+            placeholder="e.g., KPDARMS" 
+            value={senderId}
+            maxLength={11}
+            onChange={(e) => setSenderId(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">The name that appears as the sender (max 11 characters).</p>
+        </div>
+
+        <div className="pt-4 border-t space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="testPhone">Test Phone Number</Label>
+            <div className="flex gap-2">
+              <Input 
+                id="testPhone" 
+                placeholder="e.g., 0244123456" 
+                value={testPhoneNumber}
+                onChange={(e) => setTestPhoneNumber(e.target.value)}
+              />
+              <Button variant="secondary" onClick={handleTestSms} disabled={isTesting || !testPhoneNumber.trim()}>
+                {isTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Test SMS"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Verify your credentials by sending a test message before saving.</p>
+          </div>
+        </div>
       </CardContent>
       <CardFooter>
-         <Button asChild>
-            <Link href="/settings">Go to Settings</Link>
-          </Button>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Save Configuration
+        </Button>
       </CardFooter>
     </Card>
   )
@@ -125,7 +232,7 @@ export default function IntegrationsPage() {
       </div>
       
       <Tabs defaultValue="sheets" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="sheets">Property Rates Sheet</TabsTrigger>
           <TabsTrigger value="bop-sheets">BOP Sheet</TabsTrigger>
           <TabsTrigger value="sms">SMS</TabsTrigger>
@@ -147,7 +254,7 @@ export default function IntegrationsPage() {
           />
         </TabsContent>
          <TabsContent value="sms">
-          <SmsFeatureInfo />
+          <SmsIntegrationCard />
         </TabsContent>
       </Tabs>
     </>

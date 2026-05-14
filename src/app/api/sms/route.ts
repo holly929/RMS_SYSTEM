@@ -36,13 +36,13 @@ function normalizePhoneNumber(phone: string): string {
 
 
 async function handler(request: Request) {
-  const { phoneNumber, message } = await request.json();
+  const { phoneNumber, message, apiKey, senderId } = await request.json();
 
   if (!phoneNumber || !message) {
     return NextResponse.json({ error: 'Phone number and message are required.' }, { status: 400 });
   }
 
-  // Try to get from process.env
+  // Use provided keys from body (configured in UI) or fallback to process.env
   let { ARKESEL_API_KEY, ARKESEL_SENDER_ID } = process.env;
   
   // Debug: Log environment variables (masked)
@@ -52,24 +52,21 @@ async function handler(request: Request) {
   console.log('ARKESEL_SENDER_ID exists:', !!ARKESEL_SENDER_ID);
   console.log('ARKESEL_SENDER_ID value:', ARKESEL_SENDER_ID);
 
-  // Fallback to hardcoded values if environment variables not found (for debugging)
-  if (!ARKESEL_API_KEY) {
+  // Priority: 1. Body parameter, 2. Env variable, 3. Hardcoded fallback
+  const finalApiKey = apiKey || ARKESEL_API_KEY || 'RkpIc0xJb2djck9hcmtTY0RHSGI';
+  const finalSenderId = senderId || ARKESEL_SENDER_ID || 'KPDARMS';
+
+  if (!apiKey && !ARKESEL_API_KEY) {
     console.log('Using fallback ARKESEL_API_KEY');
-    ARKESEL_API_KEY = 'RkpIc0xJb2djck9hcmtTY0RHSGI';
-  }
-  
-  if (!ARKESEL_SENDER_ID) {
-    console.log('Using fallback ARKESEL_SENDER_ID');
-    ARKESEL_SENDER_ID = 'KPDARMS';
   }
 
   // Final validation
-  if (!ARKESEL_API_KEY || !ARKESEL_SENDER_ID) {
+  if (!finalApiKey || !finalSenderId) {
     return NextResponse.json({ 
       error: 'SMS service is not configured on the server. Please check .env.local file.',
       details: {
-        apiKeyExists: !!ARKESEL_API_KEY,
-        senderIdExists: !!ARKESEL_SENDER_ID,
+        apiKeyExists: !!finalApiKey,
+        senderIdExists: !!finalSenderId,
         nodeEnv: process.env.NODE_ENV,
         fallbackUsed: process.env.ARKESEL_API_KEY ? false : true
       }
@@ -84,9 +81,9 @@ async function handler(request: Request) {
 
   const params = new URLSearchParams({
     action: 'send-sms',
-    api_key: ARKESEL_API_KEY,
+    api_key: finalApiKey,
     to: normalizedPhoneNumber,
-    from: ARKESEL_SENDER_ID,
+    from: finalSenderId,
     sms: message,
   });
 
