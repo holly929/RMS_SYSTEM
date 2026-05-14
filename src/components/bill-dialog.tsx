@@ -376,7 +376,11 @@ PrintableContent.displayName = 'PrintableContent';
 
 
 export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) { // Keep isOpen as boolean
-  const [settings, setSettings] = useState<{general?: GeneralSettings, appearance?: AppearanceSettings}>({});
+  const [settings, setSettings] = useState<{
+    general?: GeneralSettings, 
+    appearance?: AppearanceSettings,
+    billDisplay?: BillDisplaySettings
+  }>({});
   const componentRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
 
