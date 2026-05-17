@@ -34,7 +34,7 @@ interface EditBopDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onBopUpdate: (bop: Bop) => void;
-  onAddPayment: (bop: Bop) => void; // New prop for adding payment
+  onAddPayment?: (bop: Bop) => void; // New prop for adding payment
 }
 
 const bopFormSchema = z.object({
@@ -221,9 +221,11 @@ export function EditBopDialog({
                 </div>
               <DialogFooter className="pt-6">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button type="button" variant="secondary" onClick={() => bop && onAddPayment(bop)}>
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Payment
-                </Button>
+                {onAddPayment && (
+                  <Button type="button" variant="secondary" onClick={() => bop && onAddPayment(bop)}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Payment
+                  </Button>
+                )}
                 <Button type="submit">Save BOP</Button>
               </DialogFooter>
             </form>

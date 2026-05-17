@@ -7,6 +7,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -21,6 +23,7 @@ interface PropertyPaymentHistoryDialogProps {
   property: Property | null;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onAddPayment?: (property: Property) => void;
 }
 
 const formatCurrency = (value: number) => `GHS ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -32,7 +35,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleString('en
   minute: '2-digit',
 });
 
-export function PropertyPaymentHistoryDialog({ property, isOpen, onOpenChange }: PropertyPaymentHistoryDialogProps) {
+export function PropertyPaymentHistoryDialog({ property, isOpen, onOpenChange, onAddPayment }: PropertyPaymentHistoryDialogProps) {
   const payments = property?.payments || [];
 
   return (
@@ -72,6 +75,14 @@ export function PropertyPaymentHistoryDialog({ property, isOpen, onOpenChange }:
             </TableBody>
           </Table>
         </div>
+        {onAddPayment && property && (
+          <div className="flex justify-end pt-4 border-t">
+            <Button variant="secondary" onClick={() => onAddPayment(property)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New Payment
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

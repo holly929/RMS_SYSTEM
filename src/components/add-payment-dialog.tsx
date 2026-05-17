@@ -43,7 +43,7 @@ interface AddPaymentDialogProps {
   itemType: 'property' | 'bop';
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onPaymentAdded: (updatedItem: Property | Bop) => void;
+  onPaymentAdded?: (updatedItem: Property | Bop) => void;
 }
 
 const paymentFormSchema = z.object({
@@ -87,7 +87,7 @@ export function AddPaymentDialog({ item, itemType, isOpen, onOpenChange, onPayme
       const result = addPaymentToItem(item.id, itemType, data.amount, data.method, data.date, currentUser);
 
       if (result) {
-        onPaymentAdded(result.updatedItem); // Notify parent component of the update
+        onPaymentAdded?.(result.updatedItem); // Notify parent component of the update
 
         // Construct a Payment object for sendPaymentReceivedSms
         const newPaymentForSms: Payment = {

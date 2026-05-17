@@ -7,7 +7,13 @@ import { toast } from '@/hooks/use-toast';
 import { logAuditEvent } from './audit-service';
 import { normalizePhoneNumber, isValidGhanaianPhoneNumber } from './phone-utils';
  
-const SMS_CHUNK_SIZE = 50; // Process in batches of 50 to avoid timeouts
+/**
+ * SMS_CHUNK_SIZE of 30 is safer for Vercel Hobby (10s limit) 
+ * when processing personalized batch messages. 
+ * Note: Ensure your server-side rate limit is high enough 
+ * to allow (Total Recipients / CHUNK_SIZE) requests.
+ */
+const SMS_CHUNK_SIZE = 30; 
 
 function compileTemplate(template: string, data: Record<string, any>): string {
     if (!template) return '';
@@ -86,17 +92,13 @@ async function sendSingleSms(phoneNumber: string, message: string): Promise<{ su
         return { success: false, error };
     }
 
-    const integrationConfig = store.settings.integrationsSettings || {};
-
     try {
         const response = await fetch('/api/sms', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 phoneNumber: normalizedPhone, 
-                message,
-                apiKey: integrationConfig.arkeselApiKey,
-                senderId: integrationConfig.arkeselSenderId
+                message
             }),
         });
 
@@ -149,8 +151,6 @@ export async function sendSms(
 
     if (validTasks.length === 0) return finalResults;
 
-    const config = store.settings.integrationsSettings || {};
-    
     // Process in chunks
     for (let i = 0; i < validTasks.length; i += SMS_CHUNK_SIZE) {
         const chunk = validTasks.slice(i, i + SMS_CHUNK_SIZE);
@@ -159,7 +159,7 @@ export async function sendSms(
         const allSame = !isPersonalized || chunk.every(t => t.message === firstMsg);
 
         try {
-            const payload: any = { apiKey: config.arkeselApiKey, senderId: config.arkeselSenderId };
+            const payload: any = { };
             if (allSame) {
                 payload.message = firstMsg;
                 payload.recipients = chunk.map(t => t.to);

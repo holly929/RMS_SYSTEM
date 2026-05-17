@@ -147,7 +147,10 @@ function getDefaultStore(): AppStore {
                 signature: '',
             },
             integrationsSettings: {
-                arkeselApiKey: '',
+                // NOTE: arkeselApiKey removed from frontend store for security.
+                // Use Vercel Environment Variables (ARKESEL_API_KEY) instead.
+                // If you must allow UI entry, ensure it is obfuscated before storage
+                // and never sent in the request body to /api/sms.
                 arkeselSenderId: 'KPDARMS',
             },
             smsSettings: {

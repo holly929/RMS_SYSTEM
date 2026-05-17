@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { Printer, PlusCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -25,6 +25,7 @@ interface PaymentHistoryDialogProps {
   bill: Bill | null;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onAddPayment?: (item: Property | Bop, type: 'property' | 'bop') => void;
 }
 
 const formatCurrency = (value: number) => `GHS ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -36,7 +37,7 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleString('en
   minute: '2-digit',
 });
 
-export function PaymentHistoryDialog({ bill, isOpen, onOpenChange }: PaymentHistoryDialogProps) {
+export function PaymentHistoryDialog({ bill, isOpen, onOpenChange, onAddPayment }: PaymentHistoryDialogProps) {
   const router = useRouter();
   const payments = bill?.propertySnapshot?.payments || [];
 
@@ -103,6 +104,14 @@ export function PaymentHistoryDialog({ bill, isOpen, onOpenChange }: PaymentHist
             </TableBody>
           </Table>
         </div>
+        {onAddPayment && bill && (
+          <div className="flex justify-end pt-4 border-t">
+            <Button variant="secondary" onClick={() => onAddPayment(bill.propertySnapshot, bill.billType)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New Payment
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

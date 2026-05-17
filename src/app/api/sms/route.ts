@@ -26,36 +26,44 @@ async function handler(request: Request) {
 
   // Case 1: Personalized Batch (Multiple unique messages processed on server)
   if (batch && Array.isArray(batch)) {
-    const results = await Promise.all(batch.map(async (task) => {
-      const normalized = normalizePhoneNumber(task.to);
-      if (!normalized) return { success: false, error: 'Invalid phone', to: task.to };
+    // Optimized: Use Arkesel's native bulk personalized SMS feature.
+    // This collapses multiple individual HTTP calls into a single request, 
+    // drastically reducing the risk of hitting Vercel's 10s execution limit.
+    const normalizedRecipients = batch.map((task: any) => ({
+      number: normalizePhoneNumber(task.to),
+      message: task.message
+    })).filter(r => r.number);
 
-      try {
-        const response = await fetch(arkeselUrl, {
-          method: 'POST',
-          headers: {
-            'api-key': finalApiKey,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            sender: finalSenderId,
-            message: task.message,
-            recipients: [normalized],
-          }),
-        });
-        const data = await response.json();
-        return { 
-          success: response.ok && (data.status === 'success' || data.code === 1000), 
-          to: normalized,
-          error: response.ok ? undefined : data.message 
-        };
-      } catch (error) {
-        return { success: false, error: 'Connection failure', to: normalized };
-      }
-    }));
+    try {
+      const response = await fetch(arkeselUrl, {
+        method: 'POST',
+        headers: {
+          'api-key': finalApiKey,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: finalSenderId,
+          recipients: normalizedRecipients,
+        }),
+      });
 
-    return NextResponse.json({ success: true, results });
+      const data = await response.json();
+      const isSuccess = response.ok && (data.status === 'success' || data.code === 1000);
+
+      // Return results array to maintain compatibility with the frontend batch processing logic
+      return NextResponse.json({ 
+        success: isSuccess, 
+        results: normalizedRecipients.map(r => ({ 
+          success: isSuccess, 
+          to: r.number,
+          error: isSuccess ? undefined : (data.message || 'API Error')
+        })) 
+      });
+    } catch (error) {
+      console.error('Bulk Personalized SMS Error:', error);
+      return NextResponse.json({ success: false, error: 'Failed to process bulk personalized SMS' }, { status: 500 });
+    }
   }
 
   // Case 2: Bulk SMS (Same message to many recipients - Arkesel optimized)

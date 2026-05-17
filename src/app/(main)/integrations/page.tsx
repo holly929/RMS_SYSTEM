@@ -87,7 +87,7 @@ function GoogleSheetIntegration({ settingKey, title, description, emptyStateText
 
 function SmsIntegrationCard() {
   const { toast } = useToast();
-  const [apiKey, setApiKey] = useState(store.settings.integrationsSettings?.arkeselApiKey || '');
+  const [apiKey, setApiKey] = useState(''); // API key is not persisted for security
   const [senderId, setSenderId] = useState(store.settings.integrationsSettings?.arkeselSenderId || 'KPDARMS');
   const [testPhoneNumber, setTestPhoneNumber] = useState('');
   const [isTesting, setIsTesting] = useState(false);
@@ -99,7 +99,6 @@ function SmsIntegrationCard() {
       if (!store.settings.integrationsSettings) {
         store.settings.integrationsSettings = {};
       }
-      store.settings.integrationsSettings.arkeselApiKey = apiKey;
       store.settings.integrationsSettings.arkeselSenderId = senderId;
       saveStore();
       toast({
@@ -173,15 +172,25 @@ function SmsIntegrationCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <Alert className="bg-primary/5 border-primary/20">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Security Configuration</AlertTitle>
+          <AlertDescription className="text-xs">
+            For production builds on Vercel, the <strong>Arkesel API Key</strong> should be set as an environment variable (<code>ARKESEL_API_KEY</code>). 
+            The field below is used for testing and is not saved to local storage.
+          </AlertDescription>
+        </Alert>
+
         <div className="space-y-2">
-          <Label htmlFor="apiKey">Arkesel API Key</Label>
+          <Label htmlFor="apiKey">Arkesel API Key (Testing Only)</Label>
           <Input 
             id="apiKey" 
             type="password" 
-            placeholder="Enter your Arkesel API key" 
+            placeholder="••••••••••••••••" 
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
           />
+          <p className="text-xs text-muted-foreground italic">Managed via Vercel Environment Variables in production.</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="senderId">Sender ID</Label>

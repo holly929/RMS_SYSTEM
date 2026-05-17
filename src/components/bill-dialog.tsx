@@ -7,7 +7,7 @@ import JsBarcode from 'jsbarcode';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import type { Property, Bop, Bill } from '@/lib/types';
-import { Printer, Loader2 } from 'lucide-react';
+import { Printer, Loader2, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getPropertyValue } from '@/lib/property-utils';
 import { store } from '@/lib/store';
@@ -17,6 +17,7 @@ interface BillDialogProps {
   bill: Bill | null;
   isOpen: boolean; // Keep this as boolean
   onOpenChange: (isOpen: boolean) => void;
+  onAddPayment?: (item: Property | Bop, type: 'property' | 'bop') => void;
 }
 
 type GeneralSettings = {
@@ -434,6 +435,12 @@ export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) { //
         </div>
         <DialogFooter className="p-6 bg-muted sm:justify-end border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          {onAddPayment && bill && (
+            <Button variant="secondary" onClick={() => onAddPayment(bill.propertySnapshot, bill.billType)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Payment
+            </Button>
+          )}
           <Button onClick={handlePrint} disabled={isLoading}>
             <Printer className="mr-2 h-4 w-4" />
             Print Bill
