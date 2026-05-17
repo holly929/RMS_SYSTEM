@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -23,10 +24,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { ToastAction } from '@/components/ui/toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -53,6 +55,7 @@ const paymentFormSchema = z.object({
 });
 
 export function AddPaymentDialog({ item, itemType, isOpen, onOpenChange, onPaymentAdded }: AddPaymentDialogProps) {
+  const router = useRouter();
   const { toast } = useToast();
   const { user: currentUser } = useAuth(); // Get current authenticated user for auditing
   const [isProcessing, setIsProcessing] = useState(false);
@@ -94,12 +97,25 @@ export function AddPaymentDialog({ item, itemType, isOpen, onOpenChange, onPayme
             method: data.method,
         };
 
+        // Prepare data for the Receipt Page
+        const receiptDetails = {
+            payment: newPaymentForSms,
+            billedItem: result.updatedItem,
+            balanceAfterPayment: result.balanceAfterPayment,
+        };
+        localStorage.setItem('receiptDetails', JSON.stringify(receiptDetails));
+
         // Send SMS notification
         await sendPaymentReceivedSms(result.updatedItem, newPaymentForSms, result.balanceAfterPayment);
 
         toast({
           title: 'Payment Added',
           description: `GHS ${data.amount.toFixed(2)} payment recorded for ${getPropertyValue(result.updatedItem, 'Property No') || getPropertyValue(result.updatedItem, 'BOP No')}.`,
+          action: (
+            <ToastAction altText="Print Receipt" onClick={() => router.push(`/receipt?receiptId=${newPaymentForSms.id}`)}>
+              <Printer className="mr-2 h-4 w-4" /> Print Receipt
+            </ToastAction>
+          ),
         });
         onOpenChange(false);
       } else {

@@ -1,6 +1,6 @@
 
 
-import type { Property, Bill, Bop, Payment } from './types';
+import type { Property, Bill, Bop, Payment, User } from './types';
 import { store } from './store';
 import { getPropertyValue } from './property-utils';
 import { toast } from '@/hooks/use-toast';
@@ -33,6 +33,10 @@ function compileTemplate(template: string, data: Record<string, any>): string {
             return store.settings.generalSettings?.assemblyName || 'The District Assembly';
         }
         
+        if (key === 'System Name') {
+            return store.settings.generalSettings?.systemName || 'RateEase';
+        }
+
         let value: any;
         // Prioritize direct properties from the data object
         if (Object.prototype.hasOwnProperty.call(data, key)) {
@@ -329,5 +333,45 @@ export async function sendPaymentReceivedSms(item: Property | Bop, payment: Paym
     } else {
         toast({ variant: 'destructive', title: 'SMS Sending Failed', description: result.error || `Could not send payment receipt SMS to ${phoneNumber}.` });
         console.error(`Failed to send automated payment received SMS to ${phoneNumber}.`);
+    }
+}
+
+/**
+ * Sends a welcome notification when a new system user (staff) is registered.
+ * @param user The newly created User object.
+ */
+export async function sendNewUserSms(user: User) {
+    const config = store.settings.smsSettings || {};
+    const { enableSmsOnNewUser, newUserMessageTemplate } = config;
+
+    if (!enableSmsOnNewUser || !newUserMessageTemplate) {
+        return;
+    }
+
+    // System users might not have a phone number field in the basic User type, 
+    // but if one is added or parsed from another field, we use it here.
+    // For now, we assume user object might contain a phone or use the name as fallback for logs.
+    const phoneNumber = (user as any).phone || (user as any).phoneNumber;
+
+    if (!phoneNumber || !String(phoneNumber).trim()) {
+        console.log(`Skipping new user SMS: No phone number found for user`, user.name);
+        return;
+    }
+
+    const message = compileTemplate(newUserMessageTemplate, user);
+    const result = await sendSingleSms(String(phoneNumber), message);
+
+    if (result.success) {
+        toast({
+            title: 'Welcome SMS Sent',
+            description: `A registration message was sent to ${user.name}.`,
+        });
+    } else {
+        console.error(`Failed to send automated new user SMS to ${user.name}:`, result.error);
+        toast({
+            variant: 'destructive',
+            title: 'SMS Failed',
+            description: 'The welcome SMS could not be delivered.',
+        });
     }
 }

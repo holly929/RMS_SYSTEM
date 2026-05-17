@@ -59,7 +59,8 @@ async function handler(request: Request) {
   // Final validation
   if (!finalApiKey || !finalSenderId) {
     return NextResponse.json({ 
-      error: 'SMS service is not configured. Please enter your API Key and Sender ID in the 
+      error: 'SMS service is not configured. Please enter your API Key and Sender ID in the Settings page.' 
+    }, { status: 400 });
   }
 
   const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);

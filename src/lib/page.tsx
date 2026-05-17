@@ -106,7 +106,7 @@ export default function ReceiptPage() {
     const isProperty = 'Property Name' in billedItem;
     const itemName = isProperty ? getPropertyValue(billedItem, 'Property Name') : getPropertyValue(billedItem, 'BUSINESS NAME & ADD');
     const ownerName = isProperty ? getPropertyValue(billedItem, 'Owner Name') : getPropertyValue(billedItem, 'NAME OF OWNER');
-    const itemIdentifier = isProperty ? getPropertyValue(billedItem, 'Property No') : getPropertyValue(billedItem, 'BOP No'); // Assuming BOP also has a 'BOP No'
+    const itemIdentifier = isProperty ? getPropertyValue(billedItem, 'Property No') : (getPropertyValue(billedItem, 'BOP No') || getPropertyValue(billedItem, 'BOP NO'));
 
     const appearance = store.settings.appearanceSettings || {};
     const general = store.settings.generalSettings || {};

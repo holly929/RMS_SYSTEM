@@ -157,6 +157,8 @@ function getDefaultStore(): AppStore {
                 newBopMessageTemplate: "Dear {{NAME OF OWNER}}, your business {{BUSINESS NAME & ADD}} ({{BUSINESS CATEGORY}} - {{DESCRIPTION OF BUSINESS}}) in {{NAME OF COMMUNITY}} has been registered with {{Assembly Name}}. Amount: GHS {{AMOUNT}}. Thank you.",
                 enableSmsOnPaymentReceived: true,
                 paymentReceivedMessageTemplate: "Dear {{Owner Name}}, we have received your payment of GHS {{Amount}} for {{Property Name/Business}}. New balance: GHS {{Balance}}. Thank you for your contribution to {{Assembly Name}}.",
+                enableSmsOnNewUser: false,
+                newUserMessageTemplate: "Welcome {{name}}, your account for {{System Name}} at {{Assembly Name}} has been created. Your role: {{role}}. Please login with your email: {{email}}.",
             },
             billDisplaySettings: {
                 showLogo: true,

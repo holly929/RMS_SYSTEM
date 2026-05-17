@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -7,6 +8,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -16,6 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { Bill, Payment } from '@/lib/types';
+import { getPropertyValue } from '@/lib/property-utils';
 
 interface PaymentHistoryDialogProps {
   bill: Bill | null;
@@ -33,7 +37,28 @@ const formatDate = (isoString: string) => new Date(isoString).toLocaleString('en
 });
 
 export function PaymentHistoryDialog({ bill, isOpen, onOpenChange }: PaymentHistoryDialogProps) {
+  const router = useRouter();
   const payments = bill?.propertySnapshot?.payments || [];
+
+  const handlePrintHistoricalReceipt = (payment: Payment) => {
+    if (!bill) return;
+    
+    // Calculate the balance at the time this specific payment was made
+    const index = payments.findIndex(p => p.id === payment.id);
+    const paymentsUntilThen = payments.slice(0, index + 1);
+    const totalPaidUntilThen = paymentsUntilThen.reduce((sum, p) => sum + p.amount, 0);
+    const initialAmountDue = getPropertyValue(bill.propertySnapshot, 'Amount') || getPropertyValue(bill.propertySnapshot, 'AMOUNT') || 0;
+    const historicalBalance = initialAmountDue - totalPaidUntilThen;
+
+    const receiptData = {
+        payment,
+        billedItem: bill.propertySnapshot,
+        balanceAfterPayment: historicalBalance,
+    };
+    localStorage.setItem('receiptDetails', JSON.stringify(receiptData));
+    router.push(`/receipt?receiptId=${payment.id}`);
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -51,6 +76,7 @@ export function PaymentHistoryDialog({ bill, isOpen, onOpenChange }: PaymentHist
                 <TableHead>Date</TableHead>
                 <TableHead>Method</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -60,6 +86,11 @@ export function PaymentHistoryDialog({ bill, isOpen, onOpenChange }: PaymentHist
                     <TableCell>{formatDate(payment.date)}</TableCell>
                     <TableCell className="capitalize">{payment.method}</TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(payment.amount)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" onClick={() => handlePrintHistoricalReceipt(payment)}>
+                        <Printer className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (

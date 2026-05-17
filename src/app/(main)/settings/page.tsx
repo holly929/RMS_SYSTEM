@@ -67,6 +67,8 @@ const smsFormSchema = z.object({
   billGeneratedMessageTemplate: z.string().max(320, "Message cannot exceed 320 chars.").optional(),
   enableSmsOnPaymentReceived: z.boolean().default(false),
   paymentReceivedMessageTemplate: z.string().max(320, "Message cannot exceed 320 chars.").optional(),
+  enableSmsOnNewUser: z.boolean().default(false),
+  newUserMessageTemplate: z.string().max(320, "Message cannot exceed 320 chars.").optional(),
 });
 
 const integrationsFormSchema = z.object({
@@ -297,6 +299,26 @@ export default function SettingsPage() {
                             <FormLabel>New Property Message Template</FormLabel>
                             <FormControl><Textarea {...field} className="min-h-[80px]"/></FormControl>
                              <PlaceholderGuide common={['Owner Name', 'Town', 'Date']} property={['Property No', 'Amount']} bop={[]} />
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                  </div>
+
+                  <div className="border-t pt-6 space-y-4">
+                     <FormField control={smsForm.control} name="enableSmsOnNewUser" render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <FormLabel className="text-base">SMS on New System User</FormLabel>
+                                <FormDescription>Notify staff members when their system account is created.</FormDescription>
+                            </div>
+                             <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                    )} />
+                    <FormField control={smsForm.control} name="newUserMessageTemplate" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>New User Welcome Template</FormLabel>
+                            <FormControl><Textarea {...field} className="min-h-[80px]"/></FormControl>
+                             <PlaceholderGuide common={['name', 'role', 'email', 'System Name', 'Assembly Name']} property={[]} bop={[]} />
                             <FormMessage />
                         </FormItem>
                     )} />
