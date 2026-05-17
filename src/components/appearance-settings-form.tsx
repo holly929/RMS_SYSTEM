@@ -15,7 +15,7 @@ import { AppearanceSettings } from './demand-notice';
 export function AppearanceSettingsForm() {
   const { toast } = useToast();
   const [assemblyLogo, setAssemblyLogo] = useState<string | undefined>(undefined);
-  const [ghanaLogo, setGhanaLogo, ] = useState<string | undefined>(undefined);
+  const [ghanaLogo, setGhanaLogo] = useState<string | undefined>(undefined);
   const [signature, setSignature] = useState<string | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
 
