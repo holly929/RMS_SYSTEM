@@ -22,6 +22,8 @@ type AppearanceSettings = {
   signature?: string;
   fontFamily?: 'sans' | 'serif' | 'mono';
   fontSize?: number;
+  accentColor?: string;
+  billWarningText?: string;
 };
 
 interface DemandNoticeProps {

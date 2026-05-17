@@ -25,6 +25,12 @@ type GeneralSettings = {
   contactPhone?: string;
 };
 
+type AppearanceSettings = {
+  assemblyLogo?: string;
+  ghanaLogo?: string;
+  signature?: string;
+};
+
 type BillDisplaySettings = {
   assemblyLogo?: string;
   ghanaLogo?: string;

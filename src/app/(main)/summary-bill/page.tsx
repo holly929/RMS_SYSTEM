@@ -1,4 +1,5 @@
 
+// c:\Users\ANEH MATHEW\RMS_SYSTEM\src\app\(main)\summary-bill\page.tsx
 'use client';
 
 import * as React from 'react';
