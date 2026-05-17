@@ -10,12 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { store, saveStore } from '@/lib/store';
 import { Loader2, UploadCloud, XCircle } from 'lucide-react';
 import Image from 'next/image';
-
-type AppearanceSettings = {
-  assemblyLogo?: string;
-  ghanaLogo?: string;
-  signature?: string;
-};
+import { AppearanceSettings } from './demand-notice';
 
 export function AppearanceSettingsForm() {
   const { toast } = useToast();

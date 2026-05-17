@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { getPropertyValue } from '@/lib/property-utils';
 import { store } from '@/lib/store';
 import Image from 'next/image';
+import { GeneralSettings, AppearanceSettings, BillDisplaySettings } from './demand-notice';
 
 interface BillDialogProps {
   bill: Bill | null;
@@ -19,28 +20,6 @@ interface BillDialogProps {
   onOpenChange: (isOpen: boolean) => void;
   onAddPayment?: (item: Property | Bop, type: 'property' | 'bop') => void;
 }
-
-type GeneralSettings = {
-  assemblyName?: string;
-  postalAddress?: string;
-  contactPhone?: string;
-};
-
-type AppearanceSettings = {
-  assemblyLogo?: string;
-  ghanaLogo?: string;
-  signature?: string;
-};
-
-type BillDisplaySettings = {
-  assemblyLogo?: string;
-  ghanaLogo?: string;
-  signature?: string;
-  fontFamily?: 'sans' | 'serif' | 'mono';
-  fontSize?: number;
-  accentColor?: string;
-  billWarningText?: string;
-};
 
 const BarcodeComponent = ({ value, isCompact }: { value: string; isCompact: boolean }) => {
     const ref = useRef<SVGSVGElement | null>(null);
