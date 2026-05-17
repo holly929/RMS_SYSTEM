@@ -8,6 +8,7 @@
 import type { Property, Bop, Bill, User, Payment, ActivityLog } from './types';
 import { PERMISSION_PAGES, type RolePermissions, type UserRole } from '@/context/PermissionsContext';
 import { logAuditEvent } from './audit-service';
+import { calculateBalance } from './billing-utils';
 
 const STORE_KEY = 'rateease.store';
 
@@ -369,48 +370,30 @@ export function addPaymentToItem(
     paymentDate: Date,
     user?: User // For auditing
 ): { updatedItem: Property | Bop; balanceAfterPayment: number } | null {
-    let item: Property | Bop | undefined;
-    let initialAmountDue: number;
+    const item = itemType === 'property' 
+        ? store.properties.find(p => p.id === itemId)
+        : store.bops.find(b => b.id === itemId);
 
-    if (itemType === 'property') {
-        item = store.properties.find(p => p.id === itemId);
-        initialAmountDue = getPropertyValue(item, 'Amount') || 0; // Assuming 'Amount' is the initial billed amount
-    } else { // bop
-        item = store.bops.find(b => b.id === itemId);
-        initialAmountDue = getPropertyValue(item, 'AMOUNT') || 0; // Assuming 'AMOUNT' is the initial billed amount
-    }
-
-    if (!item) {
-        console.error(`Item with ID ${itemId} not found for payment.`);
-        return null;
-    }
+    if (!item) return null;
 
     const newPayment: Payment = {
-        id: `pay-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, // Unique ID for payment
-        date: paymentDate.toISOString(),
+        id: `pay-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         amount: paymentAmount,
+        date: paymentDate.toISOString(),
         method: paymentMethod,
     };
 
-    const updatedPayments = [...(item.payments || []), newPayment];
-    const totalPaid = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
-    const balanceAfterPayment = initialAmountDue - totalPaid;
-
-    const updatedItem = { ...item, payments: updatedPayments };
+    const updatedItem = { ...item, payments: [...(item.payments || []), newPayment] };
+    const balanceAfterPayment = calculateBalance(updatedItem);
 
     if (itemType === 'property') {
         store.properties = store.properties.map(p => p.id === itemId ? (updatedItem as Property) : p);
     } else {
         store.bops = store.bops.map(b => b.id === itemId ? (updatedItem as Bop) : b);
-    }
+    }etRevenueCollected,
 
-    // Log activity and audit event (as implemented in previous steps)
-    // The logEntry and logAuditEvent calls are already in the diff for resetRevenueCollected,
-    // but should be adapted here for payment addition.
     const logEntry: ActivityLog = {
         id: `log-payment-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        userId: user?.id || 'system',
         userName: user?.name || 'System Admin',
         userEmail: user?.email || 'admin@rateease.gov',
         action: 'Payment Added',

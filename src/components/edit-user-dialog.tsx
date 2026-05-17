@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { isValidGhanaianPhoneNumber } from '@/lib/phone-utils';
 
 interface EditUserDialogProps {
   user: Partial<User> | null;
@@ -37,6 +38,7 @@ interface EditUserDialogProps {
 const userFormSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters.'),
   email: z.string().email('Please enter a valid email address.'),
+  phone: z.string().refine(isValidGhanaianPhoneNumber, 'Invalid Ghanaian phone number format (use 02..., 233..., or 9 digits).'),
   role: z.enum(['Admin', 'Data Entry', 'Viewer']),
   password: z.string().min(6, 'Password must be at least 6 characters.').optional().or(z.literal('')),
   confirmPassword: z.string().optional(),
@@ -61,6 +63,7 @@ export function EditUserDialog({
     defaultValues: {
       name: '',
       email: '',
+      phone: '',
       role: 'Viewer',
       password: '',
       confirmPassword: '',
@@ -74,12 +77,13 @@ export function EditUserDialog({
       form.reset({
         name: user.name || '',
         email: user.email || '',
+        phone: (user as any).phone || '',
         role: user.role || 'Viewer',
         password: '',
         confirmPassword: ''
       });
     } else {
-      form.reset({ name: '', email: '', role: 'Viewer', password: '', confirmPassword: '' });
+      form.reset({ name: '', email: '', phone: '', role: 'Viewer', password: '', confirmPassword: '' });
     }
   }, [user, form]);
 
@@ -126,6 +130,13 @@ export function EditUserDialog({
                     <FormItem>
                         <FormLabel>Email Address</FormLabel>
                         <FormControl><Input type="email" placeholder="e.g. john.doe@example.com" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+                <FormField control={form.control} name="phone" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl><Input placeholder="e.g. 0244123456" {...field} /></FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />

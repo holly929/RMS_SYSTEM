@@ -27,6 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { PlusCircle } from 'lucide-react';
 import { getPropertyValue } from '@/lib/property-utils';
+import { isValidGhanaianPhoneNumber } from '@/lib/phone-utils';
 
 interface EditBopDialogProps {
   bop: Bop | null;
@@ -46,6 +47,7 @@ const bopFormSchema = z.object({
   'SEX OF OWNER': z.string().min(1, 'Sex of owner is required.'),
   'BUSINESS CATEGORY': z.string().min(3, 'Business category is required.'),
   'DESCRIPTION OF BUSINESS': z.string().min(3, 'Description of business is required.'),
+  'Phone Number': z.string().refine(isValidGhanaianPhoneNumber, 'Invalid Ghanaian phone number format (use 02..., 233..., or 9 digits).'),
   'AMOUNT': z.coerce.number().min(0, 'Amount must be a positive number.'),
 });
 
@@ -69,6 +71,7 @@ export function EditBopDialog({
         'SEX OF OWNER': '',
         'BUSINESS CATEGORY': '',
         'DESCRIPTION OF BUSINESS': '',
+        'Phone Number': '',
         'AMOUNT': 0,
     }
   });

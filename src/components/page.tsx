@@ -33,6 +33,7 @@ import { ChartContainer, ChartTooltipContent, ChartConfig } from '@/components/u
 import { Progress } from '@/components/ui/progress';
 import { store } from '@/lib/store';
 import { getPropertyValue } from '@/lib/property-utils';
+import { calculateBalance } from '@/lib/billing-utils';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
 import type { Property, Bop, Payment } from '@/lib/types';
 import Image from 'next/image';
@@ -224,19 +225,11 @@ export default function PaymentsDashboardPage() {
     let totalPrevYearProp = 0;
     let totalPrevYearBop = 0;
 
-    // Process Property Balances and Payments
+    // Process Property Arrears and Payments
     store.properties.forEach(p => {
-      const rateableValue = Number(getPropertyValue(p, 'Rateable Value')) || 0;
-      const rateImpost = Number(getPropertyValue(p, 'Rate Impost')) || 0;
-      const sanitation = Number(getPropertyValue(p, 'Sanitation Charged')) || 0;
-      const prevBalance = Number(getPropertyValue(p, 'Previous Balance')) || 0;
-      const initialPaid = Number(getPropertyValue(p, 'Total Payment')) || 0;
+      propertyArrears += Math.max(0, calculateBalance(p));
       
-      const totalBill = (rateableValue * rateImpost) + sanitation + prevBalance;
       const systemPayments = p.payments || [];
-      const totalSystemPaid = systemPayments.reduce((sum, pay) => sum + pay.amount, 0);
-      
-      propertyArrears += Math.max(0, totalBill - (initialPaid + totalSystemPaid));
 
       systemPayments.forEach(pay => {
         const payDate = new Date(pay.date);
@@ -268,15 +261,11 @@ export default function PaymentsDashboardPage() {
       });
     });
 
-    // Process BOP Balances and Payments
+    // Process BOP Arrears and Payments
     store.bops.forEach(b => {
-      const amount = Number(getPropertyValue(b, 'AMOUNT')) || 0;
-      const initialPaid = Number(getPropertyValue(b, 'Payment')) || 0;
+      bopArrears += Math.max(0, calculateBalance(b));
       
       const systemPayments = b.payments || [];
-      const totalSystemPaid = systemPayments.reduce((sum, pay) => sum + pay.amount, 0);
-      
-      bopArrears += Math.max(0, amount - (initialPaid + totalSystemPaid));
 
       systemPayments.forEach(pay => {
         const payDate = new Date(pay.date);

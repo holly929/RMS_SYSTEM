@@ -16,6 +16,7 @@ import { useUserData } from '@/context/UserDataContext';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Loader2 } from 'lucide-react';
+import { isValidGhanaianPhoneNumber } from '@/lib/phone-utils';
 
 interface ProfileDialogProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface ProfileDialogProps {
 const profileFormSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters.'),
   email: z.string().email().readonly(),
+  phone: z.string().refine(isValidGhanaianPhoneNumber, 'Invalid Ghanaian phone number format (use 02..., 233..., or 9 digits).'),
   password: z.string().min(6, 'Password must be at least 6 characters.').optional().or(z.literal('')),
   confirmPassword: z.string().optional(),
   photoURL: z.string().optional(),
@@ -54,6 +56,7 @@ export function ProfileDialog({ isOpen, onOpenChange }: ProfileDialogProps) {
       form.reset({
         name: user.name,
         email: user.email,
+        phone: (user as any).phone || '',
         password: '',
         confirmPassword: '',
         photoURL: user.photoURL,
@@ -81,7 +84,11 @@ export function ProfileDialog({ isOpen, onOpenChange }: ProfileDialogProps) {
     setIsSaving(true);
     
     const { confirmPassword, ...userData } = data;
-    const updatedUserData: User = { ...user, name: userData.name };
+    const updatedUserData: User = { 
+      ...user, 
+      name: userData.name,
+      phone: userData.phone,
+    } as User;
 
     if (userData.password) {
         updatedUserData.password = userData.password;
@@ -128,6 +135,13 @@ export function ProfileDialog({ isOpen, onOpenChange }: ProfileDialogProps) {
                       <FormItem>
                           <FormLabel>Full Name</FormLabel>
                           <FormControl><Input placeholder="e.g. John Doe" {...field} disabled={isSaving}/></FormControl>
+                          <FormMessage />
+                      </FormItem>
+                  )} />
+                  <FormField control={form.control} name="phone" render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl><Input placeholder="e.g. 0244123456" {...field} disabled={isSaving}/></FormControl>
                           <FormMessage />
                       </FormItem>
                   )} />

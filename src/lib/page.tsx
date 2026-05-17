@@ -11,6 +11,7 @@ import type { Payment, Property, Bop } from '@/lib/types';
 import { getPropertyValue } from '@/lib/property-utils';
 import { logAuditEvent } from '@/lib/audit-service';
 import { store } from '@/lib/store';
+import { calculateBalance } from '@/lib/billing-utils';
 
 const formatCurrency = (value: number) => `GHS ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -101,7 +102,8 @@ export default function ReceiptPage() {
         );
     }
 
-    const { payment, billedItem, balanceAfterPayment } = receiptData;
+    const { payment, billedItem } = receiptData;
+    const balanceAfterPayment = calculateBalance(billedItem);
 
     const isProperty = 'Property Name' in billedItem;
     const itemName = isProperty ? getPropertyValue(billedItem, 'Property Name') : getPropertyValue(billedItem, 'BUSINESS NAME & ADD');

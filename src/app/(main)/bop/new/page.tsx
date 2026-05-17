@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { useBopData } from '@/context/BopDataContext';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import { Select } from '@/components/ui/select';
+import { isValidGhanaianPhoneNumber } from '@/lib/phone-utils';
 
 const bopFormSchema = z.object({
   'BOP No': z.string().min(1, 'Serial number is required.'),
@@ -25,7 +26,7 @@ const bopFormSchema = z.object({
   'BUSINESS CATEGORY': z.string().min(3, 'Business category is required.'),
   'DESCRIPTION OF BUSINESS': z.string().min(3, 'Description of business is required.'),
   'AMOUNT': z.coerce.number().min(0, 'Amount must be a positive number.'),
-  'Phone Number': z.string().min(10, 'Phone number must be at least 10 digits.'),
+  'Phone Number': z.string().refine(isValidGhanaianPhoneNumber, 'Invalid Ghanaian phone number format (use 02..., 233..., or 9 digits).'),
 });
 
 

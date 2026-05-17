@@ -37,6 +37,7 @@ import { useActivityLogActions } from '@/context/ActivityLogContext';
 import { TwoFactorSettings } from '@/components/twoFactorSettings';
 import { AppearanceSettingsForm } from '@/components/appearance-settings-form';
 import { useAuth } from '@/context/AuthContext';
+import { isValidGhanaianPhoneNumber } from '@/lib/phone-utils';
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -52,7 +53,7 @@ import {
 const generalFormSchema = z.object({
   assemblyName: z.string().min(3, 'Assembly Name is required.'),
   postalAddress: z.string().min(5, 'Postal Address is required.'),
-  contactPhone: z.string().min(10, 'Contact Phone is required.'),
+  contactPhone: z.string().refine(isValidGhanaianPhoneNumber, 'Invalid Ghanaian phone number format (use 02..., 233..., or 9 digits).'),
   email: z.string().email('Valid email is required.'),
   gps: z.string().optional(),
   region: z.string().min(2, 'Region is required.'),

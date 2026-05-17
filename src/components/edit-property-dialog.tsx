@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { PlusCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getPropertyValue } from '@/lib/property-utils';
+import { isValidGhanaianPhoneNumber } from '@/lib/phone-utils';
 
 interface EditPropertyDialogProps {
   property: Property | null;
@@ -39,7 +40,7 @@ interface EditPropertyDialogProps {
 const propertyFormSchema = z.object({
   'Property Name': z.string().min(3, 'Property Name is required.'),
   'Owner Name': z.string().min(3, 'Owner Name is required.'),
-  'Phone Number': z.string().min(10, 'Phone Number must be at least 10 digits.'),
+  'Phone Number': z.string().refine(isValidGhanaianPhoneNumber, 'Invalid Ghanaian phone number format (use 02..., 233..., or 9 digits).'),
   'Type of Property': z.enum(['Residential', 'Commercial', 'Industrial', 'Agricultural', 'Mixed']),
   'Suburb': z.string().min(2, 'Suburb is required.'),
   'Amount': z.coerce.number().min(0, 'Amount must be a positive number.'),

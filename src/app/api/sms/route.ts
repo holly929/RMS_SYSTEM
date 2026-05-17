@@ -1,38 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/rateLimit';
-
-function normalizePhoneNumber(phone: string): string {
-  // Remove all non-digit characters
-  const cleaned = String(phone || '').replace(/\D/g, '');
-  
-  // Ghanaian phone number formats:
-  // - Format 1: 02xxxxxxxxx (10 digits, starts with 0)
-  // - Format 2: 2332xxxxxxxxx (12 digits, starts with 233)
-  // - Format 3: +2332xxxxxxxxx (with leading +)
-  
-  if (cleaned.startsWith('0') && cleaned.length === 10) {
-    // Replace leading '0' with '233' for Ghanaian numbers (e.g., 024... -> 23324...)
-    return '233' + cleaned.substring(1);
-  }
-  
-  if (cleaned.startsWith('233') && cleaned.length === 12) {
-    // Already in correct format
-    return cleaned;
-  }
-  
-  // Handle other possible Ghanaian formats
-  if (cleaned.length === 9 && (cleaned.startsWith('2') || cleaned.startsWith('5'))) {
-    // If we have 9 digits starting with 2 or 5, add country code
-    return '233' + cleaned;
-  }
-  
-  // For debugging purposes, log the phone number format
-  if (cleaned.length < 9 || cleaned.length > 12) {
-    console.warn('Invalid Ghanaian phone number format:', phone);
-  }
-  
-  return cleaned;
-}
+import { normalizePhoneNumber } from '@/lib/phone-utils';
 
 async function handler(request: Request) {
   const body = await request.json();
