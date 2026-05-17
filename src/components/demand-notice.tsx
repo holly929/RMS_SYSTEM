@@ -16,20 +16,24 @@ type GeneralSettings = {
   region?: string;
 };
 
-type AppearanceSettings = {
+type BillDisplaySettings = {
   assemblyLogo?: string;
   ghanaLogo?: string;
   signature?: string;
   fontFamily?: 'sans' | 'serif' | 'mono';
   fontSize?: number;
-  accentColor?: string;
-  billWarningText?: string;
+};
+
+type AppearanceSettings = {
+  assemblyLogo?: string;
+  ghanaLogo?: string;
+  signature?: string;
 };
 
 interface DemandNoticeProps {
   data: Property | Bop;
   billType: 'property' | 'bop';
-  settings: { general?: GeneralSettings; appearance?: AppearanceSettings };
+  settings: { general?: GeneralSettings; appearance?: AppearanceSettings; billDisplay?: BillDisplaySettings };
 }
 
 export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
@@ -37,7 +41,7 @@ export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
     const { 
       fontFamily, 
       fontSize 
-    } = settings.appearance || {};
+    } = settings.billDisplay || {};
 
     const fontClass = useMemo(() => ({
         sans: 'font-sans',
