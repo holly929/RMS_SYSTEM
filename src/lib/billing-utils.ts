@@ -12,7 +12,14 @@ export function calculatePropertyTotalBill(property: Property): number {
     const rateImpost = Number(getPropertyValue(property, 'Rate Impost')) || 0;
     const sanitation = Number(getPropertyValue(property, 'Sanitation Charged')) || 0;
     const prevBalance = Number(getPropertyValue(property, 'Previous Balance')) || 0;
-    return (rateableValue * rateImpost) + sanitation + prevBalance;
+    
+    const calculated = (rateableValue * rateImpost) + sanitation + prevBalance;
+    
+    // If the component-based calculation is 0, fallback to the flat 'Amount' field
+    if (calculated === 0) {
+        return Number(getPropertyValue(property, 'Amount')) || 0;
+    }
+    return calculated;
 }
 
 /**
@@ -55,10 +62,18 @@ export function getBillStatus(property: Property): BillStatus {
 
 export function getBopBillStatus(bop: Bop): BillStatus {
   const amount = Number(getPropertyValue(bop, 'AMOUNT')) || 0;
+  const balance = calculateBalance(bop);
 
   if (amount <= 0) {
     return 'Unbilled';
   }
 
-  return 'Paid';
+  if (balance <= 0) {
+    return 'Paid';
+  }
+  
+  const initialPaid = Number(getPropertyValue(bop, 'Payment')) || 0;
+  const systemPaid = (bop.payments || []).reduce((s, p) => s + p.amount, 0);
+
+  return (initialPaid + systemPaid) > 0 ? 'Pending' : 'Overdue';
 }

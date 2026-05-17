@@ -31,6 +31,7 @@ type AppearanceSettings = {
   signature?: string;
   fontFamily?: 'sans' | 'serif' | 'mono';
   fontSize?: number;
+  accentColor?: string;
 };
 
 const DemandNoticeSheet = React.forwardRef<HTMLDivElement, { properties: Property[], settings: { general: GeneralSettings, appearance: AppearanceSettings } }>(({ properties, settings }, ref) => {
@@ -88,6 +89,7 @@ export default function PropertyDemandNoticePrintPage() {
             setSettings({
                 general: store.settings.generalSettings || {},
                 appearance: store.settings.appearanceSettings || {},
+                billDisplay: store.settings.billDisplaySettings || {},
             });
         } catch (error) {
             console.error("Could not load data", error);
@@ -222,12 +224,12 @@ export default function PropertyDemandNoticePrintPage() {
                     Back
                 </Link>
             </Button>
-            <h1 className="text-lg sm:text-xl font-semibold">
+            <h1 className="text-lg sm:text-xl font-semibold" style={{ color: (settings.appearance as any).billDisplay?.accentColor }}>
                 Demand Notice Preview ({allProperties.length} {allProperties.length === 1 ? 'Notice' : 'Notices'})
             </h1>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <Button onClick={handleGenerateAndPrint} disabled={renderedProperties.length === 0} className="w-full sm:w-auto">
+            <Button onClick={handleGenerateAndPrint} disabled={renderedProperties.length === 0} className="w-full sm:w-auto" style={{ backgroundColor: (settings.appearance as any).billDisplay?.accentColor }}>
               <Printer className="mr-2 h-4 w-4" />
               Print & Record Demand Notices
             </Button>

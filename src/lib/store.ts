@@ -6,7 +6,7 @@
 // within the same server process.
 
 import type { Property, Bop, Bill, User, Payment, ActivityLog } from './types';
-import { PERMISSION_PAGES, type RolePermissions, type UserRole } from '@/context/PermissionsContext';
+import { type RolePermissions } from '@/context/PermissionsContext';
 import { logAuditEvent } from './audit-service';
 import { calculateBalance } from './billing-utils';
 
@@ -163,17 +163,23 @@ function getDefaultStore(): AppStore {
                 newUserMessageTemplate: "Welcome {{name}}, your account for {{System Name}} at {{Assembly Name}} has been created. Your role: {{role}}. Please login with your email: {{email}}.",
             },
             billDisplaySettings: {
-                showLogo: true,
-                showSignature: true,
-                showStamp: true,
-                fontFamily: 'sans',
-                fontSize: 10,
+                showPropertyNo: true,
+                showValuationListNo: true,
+                showOwnerName: true,
+                showPhoneNumber: true,
+                showTown: true,
+                showSuburb: true,
+                showAccountNumber: true,
+                showPropertyType: true,
                 showAssemblyLogo: true,
                 showGhanaLogo: true,
                 showSignature: true,
-                accentColor: '#2980D1', // Default primary color
                 showQrCode: true,
-                footerText: "Thank you for your prompt payment. This receipt is computer generated and does not require a physical signature for validity.",
+                showBalanceBox: true,
+                billWarningText: "PAY AT ONCE OR FACE LEGAL ACTION",
+                fontFamily: 'sans',
+                fontSize: 10,
+                accentColor: '#2980D1', // Default primary color
             },
         },
     };
@@ -390,10 +396,12 @@ export function addPaymentToItem(
         store.properties = store.properties.map(p => p.id === itemId ? (updatedItem as Property) : p);
     } else {
         store.bops = store.bops.map(b => b.id === itemId ? (updatedItem as Bop) : b);
-    }etRevenueCollected,
+    }
 
     const logEntry: ActivityLog = {
         id: `log-payment-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        userId: user?.id || 'system',
         userName: user?.name || 'System Admin',
         userEmail: user?.email || 'admin@rateease.gov',
         action: 'Payment Added',

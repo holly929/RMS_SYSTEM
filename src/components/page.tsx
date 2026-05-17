@@ -183,6 +183,9 @@ export default function PaymentsDashboardPage() {
   const router = useRouter();
   const reportRef = useRef<HTMLDivElement>(null);
 
+  const billDisplay = store.settings.billDisplaySettings || {};
+  const accentColor = billDisplay.accentColor || '#2980D1';
+  
   const monthlyGoal = store.settings.generalSettings?.monthlyRevenueGoal || 50000;
 
   // Aggregate payments and calculate arrears from across the entire system
@@ -367,10 +370,10 @@ export default function PaymentsDashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight font-headline">Payments Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight font-headline" style={{ color: accentColor }}>Payments Dashboard</h1>
           <p className="text-muted-foreground">Monitor collections, track arrears, and manage receipts.</p>
         </div>
-        <Button onClick={handlePrintReport} variant="outline" className="flex items-center gap-2">
+        <Button onClick={handlePrintReport} variant="outline" className="flex items-center gap-2" style={{ color: accentColor, borderColor: accentColor }}>
           <Download className="h-4 w-4" /> Download PDF Report
         </Button>
       </div>
@@ -379,7 +382,7 @@ export default function PaymentsDashboardPage() {
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Collections Today</CardTitle>
-            <Wallet className="h-4 w-4 text-primary" />
+            <Wallet className="h-4 w-4" style={{ color: accentColor }} />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats.today)}</div>

@@ -227,7 +227,7 @@ export async function sendSms(
     });
 
     const logEntry: ActivityLog = {
-        id: `log-sms-batch-${Date.now()}`,
+        id: `log-sms-batch-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
         timestamp: new Date().toISOString(),
         userId: 'system',
         userName: 'System Admin',

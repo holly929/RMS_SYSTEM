@@ -124,7 +124,7 @@ export default function BulkPrintPage() {
   
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [renderedProperties, setRenderedProperties] = useState<Property[]>([]);
-  const [settings, setSettings] = useState<{general: GeneralSettings, appearance: AppearanceSettings, billDisplay: Record<string, boolean>}>({ general: {}, appearance: {}, billDisplay: {} });
+  const [settings, setSettings] = useState<{general: GeneralSettings, appearance: AppearanceSettings, billDisplay: Record<string, any>}>({ general: {}, appearance: {}, billDisplay: {} });
   const [isClient, setIsClient] = useState(false);
 
   const [isPreparing, setIsPreparing] = useState(false);
@@ -280,7 +280,7 @@ export default function BulkPrintPage() {
                     Back
                 </Link>
             </Button>
-            <h1 className="text-lg sm:text-xl font-semibold">
+            <h1 className="text-lg sm:text-xl font-semibold" style={{ color: settings.billDisplay?.accentColor }}>
                 Print Preview ({allProperties.length} {allProperties.length === 1 ? 'Bill' : 'Bills'})
             </h1>
         </div>
@@ -302,7 +302,7 @@ export default function BulkPrintPage() {
                     </SelectContent>
                 </Select>
             </div>
-            <Button onClick={handleGenerateAndPrint} disabled={renderedProperties.length === 0} className="w-full sm:w-auto">
+            <Button onClick={handleGenerateAndPrint} disabled={renderedProperties.length === 0} className="w-full sm:w-auto" style={{ backgroundColor: settings.billDisplay?.accentColor }}>
               <Printer className="mr-2 h-4 w-4" />
               Print & Record Bills
             </Button>

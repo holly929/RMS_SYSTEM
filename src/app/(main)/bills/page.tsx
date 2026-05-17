@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useBillData } from '@/context/BillDataContext';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import type { Bill, Property, Bop } from '@/lib/types';
+import { store } from '@/lib/store';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BillDialog } from '@/components/bill-dialog';
 import { PaymentHistoryDialog } from '@/components/payment-history-dialog';
@@ -38,6 +39,9 @@ export default function BillsPage() {
   const { bills } = useBillData();
   const [loading, setLoading] = React.useState(true);
   const isMobile = useIsMobile();
+  
+  const billDisplay = store.settings.billDisplaySettings || {};
+  const accentColor = billDisplay.accentColor || '#2980D1';
   const { toast } = useToast();
 
   const [filterYear, setFilterYear] = React.useState('all');
@@ -306,10 +310,10 @@ export default function BillsPage() {
   return (
     <>
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight font-headline">Generated Bills</h1>
+        <h1 className="text-3xl font-bold tracking-tight font-headline" style={{ color: accentColor }}>Generated Bills</h1>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           {selectedRows.length > 0 && (
-            <Button onClick={handlePrintSelected} variant="outline" size="sm">
+            <Button onClick={handlePrintSelected} variant="outline" size="sm" style={{ color: accentColor, borderColor: accentColor }}>
               <Printer className="mr-2 h-4 w-4" />
               Print Selected ({selectedRows.length})
             </Button>

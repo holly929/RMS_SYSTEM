@@ -33,9 +33,6 @@ type BillDisplaySettings = {
   fontSize?: number;
   accentColor?: string;
   billWarningText?: string;
-  fontFamily?: 'sans' | 'serif' | 'mono';
-  fontSize?: number;
-  accentColor?: string;
 };
 
 const BarcodeComponent = ({ value, isCompact }: { value: string; isCompact: boolean }) => {
