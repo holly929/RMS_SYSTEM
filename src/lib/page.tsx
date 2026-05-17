@@ -3,9 +3,9 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Printer, ArrowLeft, Loader2, CheckCircle2, MapPin, Phone, Mail } from 'lucide-react';
+import { Printer, ArrowLeft, Loader2, CheckCircle2, MapPin, Phone } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import type { Payment, Property, Bop } from '@/lib/types';

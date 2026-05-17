@@ -24,7 +24,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { getPropertyValue } from '@/lib/property-utils';
 import { isValidGhanaianPhoneNumber } from '@/lib/phone-utils';
 
 interface AddBopDefaulterDialogProps {

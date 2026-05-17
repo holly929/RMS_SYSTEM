@@ -86,7 +86,7 @@ export function AppearanceSettingsForm() {
         <div className="relative w-24 h-24 border rounded-md flex items-center justify-center overflow-hidden bg-muted">
           {currentImage ? (
             <>
-              <Image src={currentImage} alt={label} layout="fill" objectFit="contain" />
+              <Image src={currentImage} alt={label} fill style={{ objectFit: 'contain' }} />
               <Button
                 variant="destructive"
                 size="icon"

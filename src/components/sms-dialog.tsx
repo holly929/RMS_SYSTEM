@@ -14,7 +14,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { SmsDeliveryProgress } from '@/lib/sms-delivery-progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { sendSms } from '@/lib/sms-service';
 import { getPropertyValue } from '@/lib/property-utils';
 import { getBopBillStatus, getBillStatus } from '@/lib/billing-utils';
 

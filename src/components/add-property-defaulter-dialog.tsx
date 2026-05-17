@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getPropertyValue } from '@/lib/property-utils';
 import { isValidGhanaianPhoneNumber } from '@/lib/phone-utils';
 
 interface AddPropertyDefaulterDialogProps {
