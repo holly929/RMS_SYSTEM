@@ -1,11 +1,13 @@
 
 
-import type { Property, Bill, Bop, Payment, User } from './types';
-import { store } from './store';
+import type { Property, Bill, Bop, Payment, User, ActivityLog } from './types';
+import { store, saveStore } from './store';
 import { getPropertyValue } from './property-utils';
 import { toast } from '@/hooks/use-toast';
 import { logAuditEvent } from './audit-service';
  
+const SMS_CHUNK_SIZE = 50; // Process in batches of 50 to avoid timeouts
+
 function compileTemplate(template: string, data: Record<string, any>): string {
     if (!template) return '';
     const compiled = template.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (match, key) => {
@@ -172,21 +174,114 @@ function normalizePhoneNumber(phone: string): string {
  * @param messageTemplate The custom message template.
  * @returns An array of results for each attempt.
  */
-export async function sendSms(items: (Property | Bop)[], messageTemplate: string): Promise<{ propertyId: string; success: boolean; error?: string }[]> {
-    const smsPromises = items.map(async (item) => {
-        // Check both field names for compatibility with old and new data
+export async function sendSms(
+    items: (Property | Bop)[], 
+    messageTemplate: string,
+    onProgress?: (processed: number, total: number) => void
+): Promise<{ propertyId: string; success: boolean; error?: string; timestamp: string }[]> {
+    const tasks = items.map(item => {
         const phoneNumber = getPropertyValue(item, 'PHONE NUMBER') || getPropertyValue(item, 'Phone Number');
-        if (phoneNumber && String(phoneNumber).trim()) {
-            const message = compileTemplate(messageTemplate, item);
-            const result = await sendSingleSms(String(phoneNumber), message);
-            return { propertyId: item.id, ...result };
-        } else {
-            return { propertyId: item.id, success: false, error: 'No phone number' };
+        if (!phoneNumber || !String(phoneNumber).trim()) return { propertyId: item.id, error: 'No phone number' };
+        return { propertyId: item.id, to: String(phoneNumber), message: compileTemplate(messageTemplate, item) };
+    });
+
+    const validTasks = tasks.filter(t => 'to' in t) as { propertyId: string; to: string; message: string }[];
+    const finalResults: { propertyId: string; success: boolean; error?: string; timestamp: string }[] = tasks.map(t => 
+        'error' in t ? { propertyId: t.propertyId, success: false, error: t.error, timestamp: new Date().toISOString() } : (null as any)
+    ).filter(Boolean);
+
+    if (validTasks.length === 0) return finalResults;
+
+    const config = store.settings.integrationsSettings || {};
+    
+    // Process in chunks
+    for (let i = 0; i < validTasks.length; i += SMS_CHUNK_SIZE) {
+        const chunk = validTasks.slice(i, i + SMS_CHUNK_SIZE);
+        const isPersonalized = messageTemplate.includes('{{');
+        const firstMsg = chunk[0].message;
+        const allSame = !isPersonalized || chunk.every(t => t.message === firstMsg);
+
+        try {
+            const payload: any = { apiKey: config.arkeselApiKey, senderId: config.arkeselSenderId };
+            if (allSame) {
+                payload.message = firstMsg;
+                payload.recipients = chunk.map(t => t.to);
+            } else {
+                payload.batch = chunk.map(t => ({ to: t.to, message: t.message }));
+            }
+
+            const response = await fetch('/api/sms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const result = await response.json();
+
+            const attemptTimestamp = new Date().toISOString();
+            chunk.forEach(task => {
+                if (allSame) {
+                    finalResults.push({ 
+                        propertyId: task.propertyId, 
+                        success: result.success, 
+                        error: result.error,
+                        timestamp: attemptTimestamp 
+                    });
+                } else {
+                    const normalizedTo = normalizePhoneNumber(task.to);
+                    const batchResult = result.results?.find((r: any) => r.to === normalizedTo);
+                    finalResults.push({ 
+                        propertyId: task.propertyId, 
+                        success: batchResult?.success ?? result.success ?? false, 
+                        error: batchResult?.error || result.error,
+                        timestamp: attemptTimestamp 
+                    });
+                }
+            });
+        } catch (error) {
+            const errorTimestamp = new Date().toISOString();
+            chunk.forEach(task => {
+                finalResults.push({ 
+                    propertyId: task.propertyId, 
+                    success: false, 
+                    error: 'Network failure',
+                    timestamp: errorTimestamp 
+                });
+            });
+        }
+
+        if (onProgress) {
+            onProgress(Math.min(i + SMS_CHUNK_SIZE, validTasks.length), validTasks.length);
+        }
+    }
+
+    // Log the entire batch with individual timestamps for auditing
+    const successCount = finalResults.filter(r => r.success).length;
+    const totalCount = items.length;
+
+    await logAuditEvent({
+        timestamp: new Date().toISOString(),
+        actionType: 'DATA_FETCHED',
+        entityType: 'SMS_BATCH',
+        metadata: { 
+            total: totalCount,
+            success: successCount,
+            results: finalResults 
         }
     });
 
-    const results = await Promise.all(smsPromises);
-    return results;
+    const logEntry: ActivityLog = {
+        id: `log-sms-batch-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        userId: 'system',
+        userName: 'System Admin',
+        userEmail: 'admin@rateease.gov',
+        action: 'Bulk SMS Sent',
+        details: `Batch completed: ${successCount}/${totalCount} messages sent. Individual timestamps recorded in system audit logs.`,
+    };
+    store.activityLogs = [logEntry, ...store.activityLogs];
+    saveStore();
+
+    return finalResults;
 }
 
 /**
@@ -256,32 +351,16 @@ export async function sendBillGeneratedSms(bills: Bill[]) {
         return;
     }
 
-    const smsPromises = bills.map(bill => {
-        // Check both field names for compatibility with old and new data
-        const phoneNumber = getPropertyValue(bill.propertySnapshot, 'PHONE NUMBER') || getPropertyValue(bill.propertySnapshot, 'Phone Number');
-        if (phoneNumber && String(phoneNumber).trim()) {
-            const message = compileTemplate(billGeneratedMessageTemplate, bill);
-            return sendSingleSms(String(phoneNumber), message);
-        }
-        return Promise.resolve({ success: false, error: 'No phone number' });
-    });
+    const items = bills.map(b => b.propertySnapshot);
+    const results = await sendSms(items, billGeneratedMessageTemplate);
     
-    const results = await Promise.all(smsPromises);
     const sentCount = results.filter(r => r.success).length;
-    const failedResults = results.filter(r => !r.success && r.error !== 'No phone number');
+    const failedCount = results.length - sentCount;
 
     if (sentCount > 0) {
         toast({
             title: 'Bill Notifications Sent',
-            description: `Dispatched ${sentCount} SMS messages to property/business owners.`,
-        });
-    }
-
-    if (failedResults.length > 0) {
-        toast({
-            variant: 'destructive',
-            title: `${failedResults.length} SMS Notifications Failed`,
-            description: `First error: ${failedResults[0].error}`,
+            description: `Successfully sent ${sentCount} messages.`,
         });
     }
 }

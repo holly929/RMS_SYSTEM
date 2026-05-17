@@ -11,6 +11,7 @@ import type { Property, Bop } from '@/lib/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { SmsDeliveryProgress } from '@/lib/sms-delivery-progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { sendSms } from '@/lib/sms-service';
@@ -30,6 +31,8 @@ const smsFormSchema = z.object({
 export function SmsDialog({ isOpen, onOpenChange, selectedProperties }: SmsDialogProps) {
   const { toast } = useToast();
   const [isSending, setIsSending] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
+  const [submittedMessage, setSubmittedMessage] = useState("");
   
   const form = useForm<z.infer<typeof smsFormSchema>>({
     resolver: zodResolver(smsFormSchema),
@@ -61,52 +64,33 @@ export function SmsDialog({ isOpen, onOpenChange, selectedProperties }: SmsDialo
 
       form.reset({ message: defaultMessage });
       setIsSending(false);
+      setShowProgress(false);
+      setSubmittedMessage("");
     }
   }, [isOpen, form, selectedProperties]);
 
   const recipientCount = selectedProperties.filter(p => getPropertyValue(p, 'Phone Number')).length;
 
   async function onSubmit(data: z.infer<typeof smsFormSchema>) {
-    setIsSending(true);
+    setSubmittedMessage(data.message);
+    setShowProgress(true);
+  }
 
-    const results = await sendSms(selectedProperties, data.message);
+  const handleComplete = (results: any[]) => {
     const successfulSends = results.filter(r => r.success).length;
-    const failedSends = results.filter(r => !r.success && r.error !== 'No phone number');
-
-    setIsSending(false);
     
     if (successfulSends > 0) {
-       toast({
-        title: 'SMS Sending Complete',
+      toast({
+        title: 'SMS Delivery Complete',
         description: `Successfully dispatched ${successfulSends} messages.`,
       });
     }
-
-    if (failedSends.length > 0) {
-         toast({
-            variant: 'destructive',
-            title: `${failedSends.length} Messages Failed`,
-            description: `Could not send messages. First error: ${failedSends[0].error}`,
-        });
-    }
     
-    if (successfulSends === 0 && failedSends.length === 0) {
-        const noNumberCount = selectedProperties.length - recipientCount;
-        let description = `None of the selected items have a valid phone number.`;
-        if (noNumberCount > 0) {
-            description = `The ${recipientCount} selected recipients do not have a valid phone number.`
-        }
-         toast({
-            variant: 'destructive',
-            title: 'No Recipients',
-            description: description,
-        });
-    }
-
-    if (successfulSends > 0) {
-        setTimeout(() => onOpenChange(false), 800);
-    }
-  }
+    // Allow the user to see the final results for a few seconds before closing
+    setTimeout(() => {
+      onOpenChange(false);
+    }, 2000);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -121,6 +105,13 @@ export function SmsDialog({ isOpen, onOpenChange, selectedProperties }: SmsDialo
             You can use placeholders like {'{{Owner Name}}'}.
           </DialogDescription>
         </DialogHeader>
+        {showProgress ? (
+          <SmsDeliveryProgress 
+            items={selectedProperties} 
+            template={submittedMessage} 
+            onComplete={handleComplete}
+          />
+        ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -158,6 +149,7 @@ export function SmsDialog({ isOpen, onOpenChange, selectedProperties }: SmsDialo
             </DialogFooter>
           </form>
         </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

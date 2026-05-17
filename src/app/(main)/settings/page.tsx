@@ -56,6 +56,7 @@ const generalFormSchema = z.object({
   email: z.string().email('Valid email is required.'),
   gps: z.string().optional(),
   region: z.string().min(2, 'Region is required.'),
+  monthlyRevenueGoal: z.coerce.number().min(0, 'Goal must be a positive number.').default(50000),
 });
 
 const smsFormSchema = z.object({
@@ -268,6 +269,14 @@ export default function SettingsPage() {
                       </FormItem>
                     )} />
                   </div>
+                  <FormField control={generalForm.control} name="monthlyRevenueGoal" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monthly Revenue Goal (GHS)</FormLabel>
+                      <FormControl><Input type="number" placeholder="e.g. 50000" {...field} /></FormControl>
+                      <FormDescription>The target revenue to track progress against in the dashboard charts.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
                   <Button type="submit" className="mt-4"><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
                 </form>
               </Form>

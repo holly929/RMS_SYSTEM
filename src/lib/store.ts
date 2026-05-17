@@ -137,7 +137,8 @@ function getDefaultStore(): AppStore {
                 email: 'Kpdaist@hotmail.com',
                 gps: 'NA-0058-1615',
                 poBox: '30',
-                region: 'Northern Region'
+                region: 'Northern Region',
+                monthlyRevenueGoal: 50000,
             },
             appearanceSettings: {
                 assemblyLogo: '',
@@ -198,6 +199,10 @@ function loadStore(): AppStore {
             const mergedSettings = {
                 ...defaultStore.settings,
                 ...parsedStore.settings,
+                generalSettings: { // ensure all general settings are present
+                    ...defaultStore.settings.generalSettings,
+                    ...(parsedStore.settings?.generalSettings || {})
+                },
                 appearanceSettings: { // ensure all appearance settings are present
                     ...defaultStore.settings.appearanceSettings,
                     ...(parsedStore.settings?.appearanceSettings || {})

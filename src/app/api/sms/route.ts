@@ -34,80 +34,105 @@ function normalizePhoneNumber(phone: string): string {
   return cleaned;
 }
 
-
 async function handler(request: Request) {
-  const { phoneNumber, message, apiKey, senderId } = await request.json();
+  const body = await request.json();
+  const { phoneNumber, message, apiKey, senderId, recipients, batch } = body;
 
-  if (!phoneNumber || !message) {
-    return NextResponse.json({ error: 'Phone number and message are required.' }, { status: 400 });
+  if (!batch && (!message || (!phoneNumber && !recipients))) {
+    return NextResponse.json({ error: 'Message and recipients are required.' }, { status: 400 });
   }
 
-  // Use provided keys from body (configured in UI) or fallback to process.env
-  let { ARKESEL_API_KEY, ARKESEL_SENDER_ID } = process.env;
-  
-  // Debug: Log environment variables (masked)
-  console.log('SMS API Environment Variables (from process.env):');
-  console.log('ARKESEL_API_KEY exists:', !!ARKESEL_API_KEY);
-  console.log('ARKESEL_API_KEY length:', ARKESEL_API_KEY ? ARKESEL_API_KEY.length : 0);
-  console.log('ARKESEL_SENDER_ID exists:', !!ARKESEL_SENDER_ID);
-  console.log('ARKESEL_SENDER_ID value:', ARKESEL_SENDER_ID);
+  const { ARKESEL_API_KEY, ARKESEL_SENDER_ID } = process.env;
 
-  // Priority: 1. Body parameter (from UI), 2. Env variable
   const finalApiKey = apiKey || ARKESEL_API_KEY;
   const finalSenderId = senderId || ARKESEL_SENDER_ID;
 
-  // Final validation
   if (!finalApiKey || !finalSenderId) {
     return NextResponse.json({ 
       error: 'SMS service is not configured. Please enter your API Key and Sender ID in the Settings page.' 
     }, { status: 400 });
   }
 
-  const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
-  
-  if (!normalizedPhoneNumber) {
-    return NextResponse.json({ error: 'Invalid or empty phone number provided.' }, { status: 400 });
+  // Using Arkesel v2 JSON API for improved performance and reliability
+  const arkeselUrl = 'https://sms.arkesel.com/api/v2/sms/send';
+
+  // Case 1: Personalized Batch (Multiple unique messages processed on server)
+  if (batch && Array.isArray(batch)) {
+    const results = await Promise.all(batch.map(async (task) => {
+      const normalized = normalizePhoneNumber(task.to);
+      if (!normalized) return { success: false, error: 'Invalid phone', to: task.to };
+
+      try {
+        const response = await fetch(arkeselUrl, {
+          method: 'POST',
+          headers: {
+            'api-key': finalApiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            sender: finalSenderId,
+            message: task.message,
+            recipients: [normalized],
+          }),
+        });
+        const data = await response.json();
+        return { 
+          success: response.ok && (data.status === 'success' || data.code === 1000), 
+          to: normalized,
+          error: response.ok ? undefined : data.message 
+        };
+      } catch (error) {
+        return { success: false, error: 'Connection failure', to: normalized };
+      }
+    }));
+
+    return NextResponse.json({ success: true, results });
   }
 
-  const params = new URLSearchParams({
-    action: 'send-sms',
-    api_key: finalApiKey,
-    to: normalizedPhoneNumber,
-    from: finalSenderId,
-    sms: message,
-  });
+  // Case 2: Bulk SMS (Same message to many recipients - Arkesel optimized)
+  const recipientList = Array.isArray(recipients) ? recipients : (phoneNumber ? [phoneNumber] : []);
+  const normalizedRecipients = recipientList
+    .map(phone => normalizePhoneNumber(phone))
+    .filter(Boolean);
 
-  const arkeselUrl = `https://sms.arkesel.com/sms/api?${params.toString()}`;
+  if (normalizedRecipients.length === 0) {
+    return NextResponse.json({ error: 'No valid phone numbers provided.' }, { status: 400 });
+  }
 
   try {
     const response = await fetch(arkeselUrl, {
-      method: 'GET', // Arkesel uses GET for this API
+      method: 'POST',
+      headers: {
+        'api-key': finalApiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: finalSenderId,
+        message: message,
+        recipients: normalizedRecipients,
+      }),
     });
 
-    const responseText = await response.text();
+    const data = await response.json();
 
     if (response.ok) {
-      try {
-        const data = JSON.parse(responseText);
-          if (data.code === 'ok' && data.message === 'Successfully Sent') {
-            return NextResponse.json({ success: true, balance: data.balance, user: data.user });
-          } else {
-            console.error('Arkesel error response:', data);
-            return NextResponse.json({ error: `Arkesel error: ${data.message || 'Unknown error'}` }, { status: 400 });
-          }
-      } catch (e) {
-         if (responseText.toLowerCase().includes('sent successfully')) {
-             return NextResponse.json({ success: true });
-         }
-         console.error('Arkesel returned non-JSON response:', responseText);
-         return NextResponse.json({ error: `Arkesel API returned an invalid response.`, details: responseText }, { status: 500 });
+      // Arkesel v2 success status check
+      if (data.status === 'success' || data.code === 1000) {
+        return NextResponse.json({ success: true, balance: data.balance });
       }
+      
+      return NextResponse.json({ 
+        error: `Arkesel API error: ${data.message || 'The message could not be sent.'}` 
+      }, { status: 400 });
     } else {
-      console.error('Arkesel API request failed:', responseText);
-      return NextResponse.json({ error: `Arkesel API request failed: ${responseText || response.statusText}` }, { status: response.status });
+      return NextResponse.json({ 
+        error: `Arkesel service error: ${data.message || response.statusText}` 
+      }, { status: response.status });
     }
-  } catch (error: any) {
-    console.error('Failed to send SMS via Arkesel:', error);
+  } catch (error) {
+    console.error('SMS API connectivity error:', error);
     return NextResponse.json({ error: 'Failed to connect to SMS service.' }, { status: 500 });
   }
 }
