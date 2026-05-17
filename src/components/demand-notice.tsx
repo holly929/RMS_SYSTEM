@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { getPropertyValue } from '@/lib/property-utils';
 
-type GeneralSettings = {
+export type GeneralSettings = {
   assemblyName?: string;
   postalAddress?: string;
   contactPhone?: string;
@@ -16,24 +16,30 @@ type GeneralSettings = {
   region?: string;
 };
 
-type BillDisplaySettings = {
+export type BillDisplaySettings = {
   assemblyLogo?: string;
   ghanaLogo?: string;
   signature?: string;
   fontFamily?: 'sans' | 'serif' | 'mono';
   fontSize?: number;
+  accentColor?: string;
+  billWarningText?: string;
 };
 
-type AppearanceSettings = {
+export type AppearanceSettings = {
   assemblyLogo?: string;
   ghanaLogo?: string;
   signature?: string;
 };
 
-interface DemandNoticeProps {
+export interface DemandNoticeProps {
   data: Property | Bop;
   billType: 'property' | 'bop';
-  settings: { general?: GeneralSettings; appearance?: AppearanceSettings; billDisplay?: BillDisplaySettings };
+  settings: { 
+    general?: GeneralSettings; 
+    appearance?: AppearanceSettings; 
+    billDisplay?: BillDisplaySettings 
+  };
 }
 
 export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
