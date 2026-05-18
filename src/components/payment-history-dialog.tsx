@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { Bill, Payment } from '@/lib/types';
+import type { Bill, Payment, Property, Bop } from '@/lib/types';
 import { getPropertyValue } from '@/lib/property-utils';
 
 interface PaymentHistoryDialogProps {

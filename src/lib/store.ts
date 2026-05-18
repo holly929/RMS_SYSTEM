@@ -5,7 +5,7 @@
 // ensuring that data is shared and consistent across all user sessions
 // within the same server process.
 
-import type { Property, Bop, Bill, User, Payment, ActivityLog } from './types';
+import type { Property, Bop, Bill, User, Payment, ActivityLog, GeneralSettings, AppearanceSettings, BillDisplaySettings } from './types';
 import { type RolePermissions } from '@/context/PermissionsContext';
 import { logAuditEvent } from './audit-service';
 import { calculateBalance } from './billing-utils';
@@ -54,7 +54,13 @@ interface AppStore {
     users: User[];
     permissions: RolePermissions;
     activityLogs: ActivityLog[];
-    settings: { [key: string]: any };
+    settings: {
+        generalSettings: GeneralSettings;
+        appearanceSettings: AppearanceSettings;
+        integrationsSettings: { [key: string]: any };
+        smsSettings: { [key: string]: any };
+        billDisplaySettings: BillDisplaySettings;
+    };
 }
 
 function getDefaultStore(): AppStore {

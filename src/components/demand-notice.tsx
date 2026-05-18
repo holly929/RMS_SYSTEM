@@ -1,42 +1,10 @@
 'use client';
 
 import React, { useMemo, useCallback } from 'react';
-import type { Property, Bop } from '@/lib/types';
+import type { Property, Bop, FullSettings, GeneralSettings, BillDisplaySettings, AppearanceSettings } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { getPropertyValue } from '@/lib/property-utils';
-
-export type GeneralSettings = {
-  assemblyName?: string;
-  postalAddress?: string;
-  contactPhone?: string;
-  email?: string;
-  gps?: string;
-  poBox?: string;
-  region?: string;
-};
-
-export type BillDisplaySettings = {
-  assemblyLogo?: string;
-  ghanaLogo?: string;
-  signature?: string;
-  fontFamily?: 'sans' | 'serif' | 'mono';
-  fontSize?: number;
-  accentColor?: string;
-  billWarningText?: string;
-};
-
-export type AppearanceSettings = {
-  assemblyLogo?: string;
-  ghanaLogo?: string;
-  signature?: string;
-};
-
-export type FullSettings = {
-  general?: GeneralSettings;
-  appearance?: AppearanceSettings;
-  billDisplay?: BillDisplaySettings;
-};
 
 export interface DemandNoticeProps {
   data: Property | Bop;

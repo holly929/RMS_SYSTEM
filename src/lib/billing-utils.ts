@@ -1,6 +1,5 @@
-
 import type { Property, Bop } from '@/lib/types';
-import { getPropertyValue } from './property-utils';
+import { getPropertyValue, type StandardKey } from './property-utils';
 
 export type BillStatus = 'Paid' | 'Pending' | 'Overdue' | 'Unbilled';
 
@@ -8,10 +7,10 @@ export type BillStatus = 'Paid' | 'Pending' | 'Overdue' | 'Unbilled';
  * Calculates the total billed amount for a property (excluding payments).
  */
 export function calculatePropertyTotalBill(property: Property): number {
-    const rateableValue = Number(getPropertyValue(property, 'Rateable Value')) || 0;
-    const rateImpost = Number(getPropertyValue(property, 'Rate Impost')) || 0;
-    const sanitation = Number(getPropertyValue(property, 'Sanitation Charged')) || 0;
-    const prevBalance = Number(getPropertyValue(property, 'Previous Balance')) || 0;
+    const rateableValue = getPropertyValue<number>(property, 'Rateable Value') || 0;
+    const rateImpost = getPropertyValue<number>(property, 'Rate Impost') || 0;
+    const sanitation = getPropertyValue<number>(property, 'Sanitation Charged') || 0;
+    const prevBalance = getPropertyValue<number>(property, 'Previous Balance') || 0;
     
     const calculated = (rateableValue * rateImpost) + sanitation + prevBalance;
     
@@ -30,11 +29,11 @@ export function calculateBalance(item: Property | Bop): number {
     
     const totalBill = isProperty 
         ? calculatePropertyTotalBill(item as Property)
-        : Number(getPropertyValue(item, 'AMOUNT')) || 0;
+        : getPropertyValue<number>(item, 'Amount') || 0;
         
     const initialPaid = isProperty
-        ? Number(getPropertyValue(item, 'Total Payment')) || 0
-        : Number(getPropertyValue(item, 'Payment')) || 0;
+        ? getPropertyValue<number>(item, 'Total Payment') || 0
+        : getPropertyValue<number>(item, 'Total Payment') || 0;
         
     const systemPayments = item.payments || [];
     const totalSystemPaid = systemPayments.reduce((sum, pay) => sum + pay.amount, 0);
@@ -54,14 +53,14 @@ export function getBillStatus(property: Property): BillStatus {
     return 'Paid';
   }
   
-  const initialPaid = Number(getPropertyValue(property, 'Total Payment')) || 0;
+  const initialPaid = getPropertyValue<number>(property, 'Total Payment') || 0;
   const systemPaid = (property.payments || []).reduce((s, p) => s + p.amount, 0);
 
   return (initialPaid + systemPaid) > 0 ? 'Pending' : 'Overdue';
 }
 
 export function getBopBillStatus(bop: Bop): BillStatus {
-  const amount = Number(getPropertyValue(bop, 'AMOUNT')) || 0;
+  const amount = getPropertyValue<number>(bop, 'Amount') || 0;
   const balance = calculateBalance(bop);
 
   if (amount <= 0) {
@@ -72,7 +71,7 @@ export function getBopBillStatus(bop: Bop): BillStatus {
     return 'Paid';
   }
   
-  const initialPaid = Number(getPropertyValue(bop, 'Payment')) || 0;
+  const initialPaid = getPropertyValue<number>(bop, 'Total Payment') || 0;
   const systemPaid = (bop.payments || []).reduce((s, p) => s + p.amount, 0);
 
   return (initialPaid + systemPaid) > 0 ? 'Pending' : 'Overdue';

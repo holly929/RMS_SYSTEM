@@ -48,6 +48,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRequirePermission } from '@/hooks/useRequirePermission';
 import type { Bop as SummaryBillData } from '@/lib/types';
 import { store } from '@/lib/store';
+import { findStandardKey } from '@/lib/property-utils';
 
 const ROWS_PER_PAGE = 15;
 
@@ -236,22 +237,28 @@ export default function SummaryBillPage() {
                 .map((header, index) => ({ header: String(header || '').trim(), index }))
                 .filter(h => h.header && !h.header.toLowerCase().startsWith('__empty'));
 
-            const validHeaders = validHeadersWithIndices.map(h => h.header);
-            if (validHeaders.length === 0) return;
+            const mappedHeaders = validHeadersWithIndices.map(h => ({
+                ...h,
+                standardKey: findStandardKey(h.header)
+            }));
+
+            const finalHeaders = mappedHeaders.map(h => h.standardKey || h.header);
+            if (finalHeaders.length === 0) return;
 
             const sheetData = dataRows.map((row, rowIndex) => {
                 if (row.every(cell => cell === null || String(cell).trim() === '')) return null;
                 
                 const rowData: { [key: string]: any } = { id: `summary-${sheetName}-${Date.now()}-${rowIndex}` };
-                validHeadersWithIndices.forEach(({ header, index }) => {
-                    rowData[header] = row[index];
+                mappedHeaders.forEach(({ header, index, standardKey }) => {
+                    const finalKey = standardKey || header;
+                    rowData[finalKey] = row[index];
                 });
                 return rowData as SummaryBillData;
             }).filter((row): row is SummaryBillData => row !== null);
 
 
             if (sheetData.length > 0) {
-                 newWorkbook[sheetName] = { data: sheetData, headers: validHeaders };
+                 newWorkbook[sheetName] = { data: sheetData, headers: finalHeaders };
             }
         });
 

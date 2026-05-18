@@ -1,7 +1,7 @@
 
 import type { Property, Bop } from '@/lib/types';
 
-const STANDARD_ALIASES: Record<string, string[]> = {
+const ALIAS_MAP = {
     'Property Name': ['Property Name', 'Property Name', 'NAME TYPE OF PROPERTY', 'Business Name', 'BUSINESS NAME & ADD'],
     'Owner Name': ['Owner Name', 'Name of Owner', 'Rate Payer', 'ownername', 'NAME OF OWNER'],
     'Phone Number': ['Phone Number', 'Phone', 'Telephone', 'phonenumber', 'PHONE NUMBER', 'PHONE'],
@@ -24,6 +24,33 @@ const STANDARD_ALIASES: Record<string, string[]> = {
     'SEX OF OWNER': ['SEX OF OWNER', 'Sex'],
     'BUSINESS CATEGORY': ['BUSINESS CATEGORY', 'Business Category'],
     'DESCRIPTION OF PROPERTY': ['DESCRIPTION OF PROPERTY', 'Property Description'],
+} as const;
+
+const STANDARD_ALIASES: Record<string, readonly string[]> = ALIAS_MAP;
+
+export type StandardKey = keyof typeof ALIAS_MAP;
+
+const normalize = (str: string) => (str || '').toLowerCase().replace(/[\s._-]/g, '');
+
+/**
+ * Attempts to find a matching StandardKey for a given raw header string.
+ * @param header The raw header string from Excel.
+ * @returns The matching StandardKey or undefined.
+ */
+export const findStandardKey = (header: string): StandardKey | undefined => {
+    const normalizedHeader = normalize(header);
+
+    for (const [key, aliases] of Object.entries(ALIAS_MAP)) {
+        const standardKey = key as StandardKey;
+        // Check exact match with standard key
+        if (normalize(standardKey) === normalizedHeader) return standardKey;
+        
+        // Check aliases
+        for (const alias of (aliases as readonly string[])) {
+            if (normalize(alias) === normalizedHeader) return standardKey;
+        }
+    }
+    return undefined;
 };
 
 /**
@@ -33,13 +60,21 @@ const STANDARD_ALIASES: Record<string, string[]> = {
  * @param standardKey The standardized key for the value to retrieve (e.g., 'Owner Name').
  * @returns The found value, or undefined if not found.
  */
-export const getPropertyValue = (property: Property | Bop | null, standardKey: string): any => {
+export const getPropertyValue = <T = any>(
+    property: Property | Bop | null, 
+    standardKey: StandardKey | (string & {})
+): T | undefined => {
     if (!property) return undefined;
 
-    const keyAliases = STANDARD_ALIASES[standardKey] || [standardKey];
-    const propertyKeys = Object.keys(property);
+    // OPTIMIZATION: If the standardKey itself is an exact property key, return it immediately.
+    // This skips all alias and fuzzy matching if the most direct match is available.
+    const directValue = property[standardKey];
+    if (directValue !== undefined && directValue !== null && String(directValue).trim() !== '') {
+      return directValue as T;
+    }
 
-    const normalize = (str: string) => (str || '').toLowerCase().replace(/[\s._-]/g, '');
+    const keyAliases: readonly string[] = STANDARD_ALIASES[standardKey] || [standardKey];
+    const propertyKeys = Object.keys(property);
     const tokenize = (str: string): string[] => (str || '').toLowerCase().match(/\w+/g) || [];
 
     // --- Pass 1: Exact normalized match ---
@@ -49,7 +84,7 @@ export const getPropertyValue = (property: Property | Bop | null, standardKey: s
             if (normalize(pKey) === normalizedAlias) {
                 const value = property[pKey];
                 if (value !== undefined && value !== null && String(value).trim() !== '') {
-                    return value;
+                    return value as T;
                 }
             }
         }
@@ -67,7 +102,7 @@ export const getPropertyValue = (property: Property | Bop | null, standardKey: s
             if (normalizedPKey.includes(normalizedAlias) || normalizedAlias.includes(normalizedPKey)) {
                 const value = property[pKey];
                 if (value !== undefined && value !== null && String(value).trim() !== '') {
-                    return value;
+                    return value as T;
                 }
             }
         }
@@ -89,16 +124,10 @@ export const getPropertyValue = (property: Property | Bop | null, standardKey: s
             if (allTokensFound) {
                  const value = property[pKey];
                 if (value !== undefined && value !== null && String(value).trim() !== '') {
-                    return value;
+                    return value as T;
                 }
             }
         }
-    }
-
-    // Fallback for keys that might not be in the alias list but exist on the object
-    const directValue = property[standardKey];
-    if (directValue !== undefined && directValue !== null && String(directValue).trim() !== '') {
-      return directValue;
     }
 
     return undefined;

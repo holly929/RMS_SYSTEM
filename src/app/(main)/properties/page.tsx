@@ -53,7 +53,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePropertyData } from '@/context/PropertyDataContext';
 import { useAuth } from '@/context/AuthContext';
-import { getPropertyValue } from '@/lib/property-utils';
+import { getPropertyValue, findStandardKey } from '@/lib/property-utils';
 import { Progress } from '@/components/ui/progress';
 
 const ROWS_PER_PAGE = 15;
@@ -151,8 +151,16 @@ export default function PropertiesPage() {
           .map((header, index) => ({ header: String(header || '').trim(), index }))
           .filter(h => h.header && !h.header.toLowerCase().startsWith('__empty'));
         
-        const newHeaders = validHeadersWithIndices.map(h => h.header);
-        if (newHeaders.length === 0) throw new Error("No valid headers found.");
+        const mappedHeaders = validHeadersWithIndices.map(h => ({
+            ...h,
+            standardKey: findStandardKey(h.header)
+        }));
+
+        const recognizedCount = mappedHeaders.filter(h => h.standardKey).length;
+        if (recognizedCount === 0) throw new Error("No recognized property columns found. Please check your Excel headers.");
+
+        const finalHeaders = mappedHeaders.map(h => h.standardKey || h.header);
+        if (finalHeaders.length === 0) throw new Error("No valid headers found.");
 
         setImportStatus(prev => ({ ...prev, total: dataRows.length }));
         
@@ -161,7 +169,7 @@ export default function PropertiesPage() {
         
         const processChunk = () => {
           if (currentIndex >= dataRows.length) {
-              setProperties(allNewData, newHeaders);
+              setProperties(allNewData, finalHeaders);
               setCurrentPage(1);
               toast({ title: 'Import Successful', description: `${allNewData.length} records have been loaded.` });
               setImportStatus({ inProgress: false, total: 0, processed: 0 });
@@ -175,8 +183,9 @@ export default function PropertiesPage() {
               if (row.every(cell => cell === null || String(cell).trim() === '')) return null;
               const rowIndex = currentIndex + chunkIndex;
               const rowData: { [key: string]: any } = { id: `imported-${Date.now()}-${rowIndex}` };
-              validHeadersWithIndices.forEach(({ header, index }) => {
-                  rowData[header] = row[index];
+              mappedHeaders.forEach(({ header, index, standardKey }) => {
+                  const finalKey = standardKey || header;
+                  rowData[finalKey] = row[index];
               });
               return rowData as Property;
           }).filter((row): row is Property => row !== null);

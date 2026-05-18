@@ -46,7 +46,7 @@ export function SmsDialog({ isOpen, onOpenChange, selectedProperties }: SmsDialo
       let isBop = false;
       let isDefaulter = false;
 
-      if (firstItem) {
+      if (firstItem && 'id' in firstItem) {
           isBop = !!getPropertyValue(firstItem, 'Business Name');
           const status = isBop ? getBopBillStatus(firstItem as Bop) : getBillStatus(firstItem as Property);
           isDefaulter = status === 'Overdue' || status === 'Pending';

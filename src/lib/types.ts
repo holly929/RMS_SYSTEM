@@ -1,4 +1,39 @@
 
+export type GeneralSettings = {
+  assemblyName?: string;
+  postalAddress?: string;
+  contactPhone?: string;
+  email?: string;
+  gps?: string;
+  poBox?: string;
+  region?: string;
+  systemName?: string;
+  monthlyRevenueGoal?: number;
+};
+
+export type BillDisplaySettings = {
+  assemblyLogo?: string;
+  ghanaLogo?: string;
+  signature?: string;
+  fontFamily?: 'sans' | 'serif' | 'mono';
+  fontSize?: number;
+  accentColor?: string;
+  billWarningText?: string;
+  [key: string]: any; // Allows for dynamic "show" flags like showOwnerName
+};
+
+export type AppearanceSettings = {
+  assemblyLogo?: string;
+  ghanaLogo?: string;
+  signature?: string;
+};
+
+export type FullSettings = {
+  general?: GeneralSettings;
+  appearance?: AppearanceSettings;
+  billDisplay?: BillDisplaySettings;
+};
+
 export type Payment = {
   id: string;
   amount: number;
@@ -68,7 +103,7 @@ export type RevenueData = {
 };
 
 export type PaymentStatusData = {
-  name: 'Paid' | 'Pending' | 'Overdue' | 'Unbilled';
+  name: BillStatus;
   value: number;
   fill: string;
 };
@@ -80,6 +115,7 @@ export type User = {
   role: 'Admin' | 'Data Entry' | 'Viewer';
   password?: string;
   photoURL?: string;
+  phone?: string;
   created_at?: string;
   twoFactorEnabled: boolean;
   twoFactorSecret?: string;

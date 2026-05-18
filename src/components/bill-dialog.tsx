@@ -7,13 +7,12 @@ import { useReactToPrint } from 'react-to-print';
 import JsBarcode from 'jsbarcode';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import type { Property, Bop, Bill } from '@/lib/types';
+import type { Property, Bop, Bill, FullSettings } from '@/lib/types';
 import { Printer, Loader2, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getPropertyValue } from '@/lib/property-utils';
 import { store } from '@/lib/store';
 import Image from 'next/image';
-import { FullSettings } from './demand-notice';
 
 interface BillDialogProps {
   bill: Bill | null;
@@ -299,7 +298,7 @@ export const PrintableContent = React.forwardRef<HTMLDivElement, {
     }
 
     if (!data) {
-        return <div ref={ref}>Loading...</div>;
+        return <div ref={ref} className="p-4 text-center">Loading...</div>;
     }
 
     return (
@@ -390,7 +389,7 @@ export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) { //
     
     // Navigate to the print preview page
     router.push('/properties/demand-notice/print-preview');
-  });
+  };
 
   if (!bill) return null;
 

@@ -2,11 +2,12 @@
 
 import type { Property, Bill, Bop, Payment, User, ActivityLog } from './types';
 import { store, saveStore } from './store';
-import { getPropertyValue } from './property-utils';
+import { getPropertyValue, findStandardKey, type StandardKey } from './property-utils';
 import { toast } from '@/hooks/use-toast';
 import { logAuditEvent } from './audit-service';
 import { normalizePhoneNumber, isValidGhanaianPhoneNumber } from './phone-utils';
- 
+import { calculateBalance } from './billing-utils';
+
 /**
  * SMS_CHUNK_SIZE of 30 is safer for Vercel Hobby (10s limit) 
  * when processing personalized batch messages. 
@@ -35,7 +36,7 @@ function compileTemplate(template: string, data: Record<string, any>): string {
         }
 
         if (key === 'Year') {
-            return new Date().getFullYear().toString();
+            return (data.year || new Date().getFullYear()).toString();
         }
 
         if (key === 'Assembly Name') {
@@ -48,20 +49,24 @@ function compileTemplate(template: string, data: Record<string, any>): string {
 
         let value: any;
         // Prioritize direct properties from the data object
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
+        if (key === 'Amount' && 'totalAmountDue' in data) {
+            value = data.totalAmountDue;
+        } else if (Object.prototype.hasOwnProperty.call(data, key)) {
             value = data[key];
-        } else if ('propertySnapshot' in data && data.propertySnapshot && Object.prototype.hasOwnProperty.call(data.propertySnapshot, key)) {
-            // If it's a Bill-like object with a propertySnapshot, check there
-            value = data.propertySnapshot[key];
+        } else if ('propertySnapshot' in data && data.propertySnapshot) {
+            // It's likely a Bill. Try to get the value from the snapshot using robust getter
+            value = getPropertyValue(data.propertySnapshot, key);
         } else {
             // Fallback to getPropertyValue for nested/dynamic keys if not found directly
             // This is primarily for Property/Bop fields that might be dynamic
             value = getPropertyValue(data as any, key); 
         }
 
+        const standardKey = findStandardKey(key);
+        // List of keys (Standard or specific) that should be formatted as currency
+        const monetaryKeys = ['totalAmountDue', 'Rateable Value', 'Total Payment', 'Amount', 'Sanitation Charged', 'Previous Balance'];
 
-        
-        if (typeof value === 'number' && ['totalAmountDue', 'Rateable Value', 'Total Payment', 'Permit Fee', 'Payment', 'AMOUNT', 'Amount'].includes(key)) {
+        if (typeof value === 'number' && (monetaryKeys.includes(key) || (standardKey && monetaryKeys.includes(standardKey)))) {
             return value.toFixed(2);
         }
         
@@ -134,19 +139,27 @@ async function sendSingleSms(phoneNumber: string, message: string): Promise<{ su
  * @returns An array of results for each attempt.
  */
 export async function sendSms(
-    items: (Property | Bop)[], 
+    items: (Property | Bop | Bill)[], 
     messageTemplate: string,
     onProgress?: (processed: number, total: number) => void
-): Promise<{ propertyId: string; success: boolean; error?: string; timestamp: string }[]> {
+): Promise<{ itemId: string; propertyId: string; success: boolean; error?: string; timestamp: string }[]> {
     const tasks = items.map(item => {
-        const phoneNumber = getPropertyValue(item, 'PHONE NUMBER') || getPropertyValue(item, 'Phone Number');
-        if (!phoneNumber || !String(phoneNumber).trim()) return { propertyId: item.id, error: 'No phone number' };
-        return { propertyId: item.id, to: String(phoneNumber), message: compileTemplate(messageTemplate, item) };
+        const isBill = 'propertySnapshot' in item;
+        const contextData = isBill ? (item as Bill).propertySnapshot : item;
+        const phoneNumber = getPropertyValue(contextData, 'PHONE NUMBER') || getPropertyValue(contextData, 'Phone Number');
+
+        const ids = {
+            itemId: item.id,
+            propertyId: isBill ? (item as Bill).propertyId : item.id
+        };
+
+        if (!phoneNumber || !String(phoneNumber).trim()) return { ...ids, error: 'No phone number' };
+        return { ...ids, to: String(phoneNumber), message: compileTemplate(messageTemplate, item) };
     });
 
-    const validTasks = tasks.filter(t => 'to' in t) as { propertyId: string; to: string; message: string }[];
-    const finalResults: { propertyId: string; success: boolean; error?: string; timestamp: string }[] = tasks.map(t => 
-        'error' in t ? { propertyId: t.propertyId, success: false, error: t.error, timestamp: new Date().toISOString() } : (null as any)
+    const validTasks = tasks.filter(t => 'to' in t) as { itemId: string; propertyId: string; to: string; message: string }[];
+    const finalResults: { itemId: string; propertyId: string; success: boolean; error?: string; timestamp: string }[] = tasks.map(t => 
+        'error' in t ? { itemId: t.itemId, propertyId: t.propertyId, success: false, error: t.error, timestamp: new Date().toISOString() } : (null as any)
     ).filter(Boolean);
 
     if (validTasks.length === 0) return finalResults;
@@ -178,7 +191,8 @@ export async function sendSms(
             chunk.forEach(task => {
                 if (allSame) {
                     finalResults.push({ 
-                        propertyId: task.propertyId, 
+                        itemId: task.itemId,
+                        propertyId: task.propertyId,
                         success: result.success, 
                         error: result.error,
                         timestamp: attemptTimestamp 
@@ -187,7 +201,8 @@ export async function sendSms(
                     const normalizedTo = normalizePhoneNumber(task.to);
                     const batchResult = result.results?.find((r: any) => r.to === normalizedTo);
                     finalResults.push({ 
-                        propertyId: task.propertyId, 
+                        itemId: task.itemId,
+                        propertyId: task.propertyId,
                         success: batchResult?.success ?? result.success ?? false, 
                         error: batchResult?.error || result.error,
                         timestamp: attemptTimestamp 
@@ -198,7 +213,8 @@ export async function sendSms(
             const errorTimestamp = new Date().toISOString();
             chunk.forEach(task => {
                 finalResults.push({ 
-                    propertyId: task.propertyId, 
+                    itemId: task.itemId,
+                    propertyId: task.propertyId,
                     success: false, 
                     error: 'Network failure',
                     timestamp: errorTimestamp 
@@ -308,8 +324,7 @@ export async function sendBillGeneratedSms(bills: Bill[]) {
         return;
     }
 
-    const items = bills.map(b => b.propertySnapshot);
-    const results = await sendSms(items, billGeneratedMessageTemplate);
+    const results = await sendSms(bills, billGeneratedMessageTemplate);
     
     const sentCount = results.filter(r => r.success).length;
     const failedCount = results.length - sentCount;
@@ -338,15 +353,9 @@ export async function sendPaymentReceivedSms(item: Property | Bop, payment: Paym
         return;
     }
 
-    let ownerName = '';
-    let itemName = '';
-    let phoneNumber = '';
-
-    const isProperty = 'Property Name' in item;
-    
-    ownerName = isProperty ? (getPropertyValue(item, 'Owner Name') || '') : (getPropertyValue(item, 'NAME OF OWNER') || '');
-    itemName = isProperty ? (getPropertyValue(item, 'Property Name') || '') : (getPropertyValue(item, 'BUSINESS NAME & ADD') || '');
-    phoneNumber = getPropertyValue(item, 'Phone Number') || getPropertyValue(item, 'PHONE NUMBER') || '';
+    const ownerName = getPropertyValue<string>(item, 'Owner Name') || '';
+    const itemName = getPropertyValue<string>(item, 'Property Name') || '';
+    const phoneNumber = getPropertyValue<string>(item, 'Phone Number') || '';
 
     if (!phoneNumber || !String(phoneNumber).trim()) {
         console.log(`Skipping payment received SMS: No phone number found for item ID`, item.id);
@@ -384,10 +393,8 @@ export async function sendNewUserSms(user: User) {
         return;
     }
 
-    // System users might not have a phone number field in the basic User type, 
-    // but if one is added or parsed from another field, we use it here.
-    // For now, we assume user object might contain a phone or use the name as fallback for logs.
-    const phoneNumber = (user as any).phone || (user as any).phoneNumber;
+    // Using the now-typed phone property from the User interface
+    const phoneNumber = user.phone;
 
     if (!phoneNumber || !String(phoneNumber).trim()) {
         console.log(`Skipping new user SMS: No phone number found for user`, user.name);
