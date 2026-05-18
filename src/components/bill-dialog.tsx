@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useReactToPrint } from 'react-to-print';
 import JsBarcode from 'jsbarcode';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
@@ -363,6 +364,7 @@ PrintableContent.displayName = 'PrintableContent';
 
 
 export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) { // Keep isOpen as boolean
+  const router = useRouter();
   const [settings, setSettings] = useState<FullSettings>({});
   const componentRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -380,8 +382,14 @@ export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) { //
     }
   }, [isOpen]);
 
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
+  const handlePrintDemandNotice = () => {
+    if (!bill) return;
+    // Store the necessary data in localStorage
+    localStorage.setItem('demandNoticeDataForPrinting', JSON.stringify(bill.propertySnapshot));
+    localStorage.setItem('demandNoticeBillTypeForPrinting', bill.billType);
+    
+    // Navigate to the print preview page
+    router.push('/properties/demand-notice/print-preview');
   });
 
   if (!bill) return null;
@@ -416,7 +424,7 @@ export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) { //
               Add Payment
             </Button>
           )}
-          <Button onClick={handlePrint} disabled={isLoading}>
+          <Button onClick={handlePrintDemandNotice} disabled={isLoading}>
             <Printer className="mr-2 h-4 w-4" />
             Print Bill
           </Button>
