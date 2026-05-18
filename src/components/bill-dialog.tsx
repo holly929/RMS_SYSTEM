@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { getPropertyValue } from '@/lib/property-utils';
 import { store } from '@/lib/store';
 import Image from 'next/image';
-import { GeneralSettings, AppearanceSettings, BillDisplaySettings } from './demand-notice';
+import { FullSettings } from './demand-notice';
 
 interface BillDialogProps {
   bill: Bill | null;
@@ -55,7 +55,7 @@ export const PrintableContent = React.forwardRef<HTMLDivElement, {
     property?: Property;
     data?: Property | Bop;
     billType?: 'property' | 'bop';
-    settings: { general?: GeneralSettings, appearance?: AppearanceSettings, billDisplay?: BillDisplaySettings }; 
+    settings: FullSettings;
     isCompact?: boolean; 
     displaySettings?: Record<string, boolean>;
 }>(
@@ -363,11 +363,7 @@ PrintableContent.displayName = 'PrintableContent';
 
 
 export function BillDialog({ bill, isOpen, onOpenChange }: BillDialogProps) { // Keep isOpen as boolean
-  const [settings, setSettings] = useState<{
-    general?: GeneralSettings, 
-    appearance?: AppearanceSettings,
-    billDisplay?: BillDisplaySettings
-  }>({});
+  const [settings, setSettings] = useState<FullSettings>({});
   const componentRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
 

@@ -32,14 +32,16 @@ export type AppearanceSettings = {
   signature?: string;
 };
 
+export type FullSettings = {
+  general?: GeneralSettings;
+  appearance?: AppearanceSettings;
+  billDisplay?: BillDisplaySettings;
+};
+
 export interface DemandNoticeProps {
   data: Property | Bop;
   billType: 'property' | 'bop';
-  settings: { 
-    general?: GeneralSettings; 
-    appearance?: AppearanceSettings; 
-    billDisplay?: BillDisplaySettings 
-  };
+  settings: FullSettings;
 }
 
 export const DemandNotice = React.forwardRef<HTMLDivElement, DemandNoticeProps>(
