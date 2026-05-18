@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 
 export default function PrintPreviewPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [settings, setSettings] = useState<FullSettings>({});
+  const [settings, setSettings] = useState<FullSettings>({}); // Ensure this is explicitly typed as FullSettings
   const [dataToPrint, setDataToPrint] = useState<Property | Bop | null>(null);
   const [billType, setBillType] = useState<'property' | 'bop' | null>(null);
   const componentRef = useRef<HTMLDivElement>(null);
