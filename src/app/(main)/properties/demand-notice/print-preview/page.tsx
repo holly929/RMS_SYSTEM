@@ -11,7 +11,11 @@ import { Button } from '@/components/ui/button';
 
 export default function PrintPreviewPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [settings, setSettings] = useState<FullSettings>({});
+  const [settings, setSettings] = useState<FullSettings>({
+    general: {},
+    appearance: {},
+    billDisplay: {}
+  });
   const [dataToPrint, setDataToPrint] = useState<Property | Bop | null>(null);
   const [billType, setBillType] = useState<'property' | 'bop' | null>(null);
   const componentRef = useRef<HTMLDivElement>(null);
@@ -20,14 +24,13 @@ export default function PrintPreviewPage() {
     const loadData = () => {
       setIsLoading(true);
       try {
-        if (store?.settings) {
-          // Load settings from the store
-          setSettings({
-            general: store.settings.generalSettings || {},
-            appearance: store.settings.appearanceSettings || {},
-            billDisplay: store.settings.billDisplaySettings || {},
-          });
-        }
+        // Load settings from the store using optional chaining for safety
+        const storeSettings = store?.settings;
+        setSettings({
+          general: storeSettings?.generalSettings || {},
+          appearance: storeSettings?.appearanceSettings || {},
+          billDisplay: storeSettings?.billDisplaySettings || {},
+        });
 
         // Load data to print from localStorage
         const storedData = localStorage.getItem('demandNoticeDataForPrinting');
